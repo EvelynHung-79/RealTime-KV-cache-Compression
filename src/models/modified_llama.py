@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from transformers import LlamaForCausalLM, LlamaConfig
 from transformers.models.llama.modeling_llama import LlamaAttention, LlamaDecoderLayer
 from typing import Optional, Tuple, Union, Dict, List
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 class CompressedLlamaAttention(LlamaAttention):
     """
@@ -30,7 +33,7 @@ class CompressedLlamaAttention(LlamaAttention):
         input_ids: Optional[torch.Tensor] = None,  # Added for compression
         **kwargs,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
-
+    logging.info(f"[CompressedLlamaAttention] Forwarding at layer {self.layer_idx}")
         bsz, q_len, _ = hidden_states.size()
 
         # Standard attention computation
@@ -74,10 +77,12 @@ class CompressedLlamaAttention(LlamaAttention):
                 v_for_compression = v_for_compression.view(bsz, -1, self.num_key_value_heads * self.head_dim)
 
                 # Apply compression
+                # 每一層（layer）在 forward 時都會執行一次壓縮（compression）操作。
+                # 將這一層的 key/value cache 壓縮，減少記憶體用量或加速運算。
                 compressed_k, compressed_v, compression_info = self.compressor.compress_layer_kv_cache(
                     k_for_compression, v_for_compression, attn_weights, 
                     input_ids if input_ids is not None else torch.zeros((bsz, q_len), device=hidden_states.device, dtype=torch.long),
-                    self.layer_idx
+                    self.layer_idx # 追踪當前層
                 )
 
                 # Reshape back to attention format
@@ -289,6 +294,7 @@ def create_compressed_llama_model(model_name: str, config, device: str = "cuda")
         Compressed LLaMA model with real-time KV cache compression
     """
     from ..compression.unified_compressor import RealTimePrefillCompressor
+
 
     # Load base model configuration
     model_config = LlamaConfig.from_pretrained(model_name)

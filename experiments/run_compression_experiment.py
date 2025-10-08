@@ -2,6 +2,12 @@
 """
 Real-time Prefill KV Cache Compression Experiment
 Main script for running compression experiments on LLaMA2 with LongBench evaluation
+
+這是一個用於運行LLaMA2模型KV緩存壓縮實驗的主要腳本。
+主要功能：
+1. 實現實時預填充KV緩存壓縮
+2. 使用LongBench進行評估
+3. 支持基準測試
 """
 
 import os
@@ -23,10 +29,20 @@ from evaluation.longbench_eval import LongBenchEvaluator
 from utils.memory_utils import MemoryMonitor
 from utils.eval_utils import setup_logging
 
+
 def parse_arguments():
+    """
+    解析命令行參數
+    包含以下主要配置：
+    1. 模型配置：模型名稱、設備選擇、序列長度等
+    2. 壓縮超參數：注意力權重、閾值等
+    3. 層傳播比率：控制不同層的壓縮程度
+    4. 評估設置：任務選擇、樣本數等
+    5. 實驗設置：輸出目錄、實驗名稱等
+    """
     parser = argparse.ArgumentParser(description='Real-time Prefill KV Cache Compression Experiment')
 
-    # Model configuration
+    # 模型配置 (Model configuration)
     parser.add_argument('--model_name', type=str, default='meta-llama/Llama-2-7b-hf',
                        help='HuggingFace model name')
     parser.add_argument('--device', type=str, default='cuda',
@@ -70,16 +86,23 @@ def parse_arguments():
     parser.add_argument('--save_model', action='store_true',
                        help='Save compressed model after experiment')
 
-    # Ablation study
-    parser.add_argument('--ablation', action='store_true',
-                       help='Run ablation study')
+    # Baseline comparison
     parser.add_argument('--baseline', action='store_true',
                        help='Run baseline (no compression) comparison')
 
     return parser.parse_args()
 
+
 def create_experiment_config(args):
-    """Create compression configuration from arguments"""
+    """
+    從命令行參數創建壓縮配置
+    
+    配置包含：
+    1. 模型基本設置：模型名稱、最大位置嵌入等
+    2. 壓縮權重：alpha（提示注意力）、beta（位置偏差）、gamma（上下文相關性）
+    3. 精度閾值：theta_h（高精度）、theta_m（中等精度）
+    4. 層傳播比率：控制不同深度層的壓縮程度
+    """
     config = CompressionConfig(
         model_name=args.model_name,
         max_position_embeddings=args.max_length,
@@ -96,8 +119,17 @@ def create_experiment_config(args):
     )
     return config
 
+
 def run_baseline_experiment(args, tokenizer, output_dir):
-    """Run baseline experiment without compression"""
+    """
+    運行基準實驗（無壓縮）
+    
+    目的：
+    1. 建立性能基準線，用於與壓縮模型比較
+    2. 使用原始LLaMA模型進行評估
+    3. 收集未壓縮模型的性能指標
+    4. 保存基準測試結果供後續分析
+    """
     print("\n" + "="*50)
     print("RUNNING BASELINE EXPERIMENT (No Compression)")
     print("="*50)
@@ -141,8 +173,18 @@ def run_baseline_experiment(args, tokenizer, output_dir):
 
     return results
 
+
 def run_compression_experiment(args, config, tokenizer, output_dir):
-    """Run main compression experiment"""
+    """
+    運行主要的壓縮實驗
+    
+    實現功能：
+    1. 內存監控：追踪實驗過程中的內存使用情況
+    2. 模型加載：創建並初始化壓縮版的LLaMA模型
+    3. 性能評估：使用LongBench基準測試評估壓縮模型
+    4. 結果收集：記錄評估指標、內存統計和實驗元數據
+    5. 模型保存：可選擇性保存壓縮後的模型
+    """
     print("\n" + "="*50)
     print("RUNNING COMPRESSION EXPERIMENT")
     print("="*50)
@@ -199,72 +241,23 @@ def run_compression_experiment(args, config, tokenizer, output_dir):
 
     return results
 
-def run_ablation_study(args, tokenizer, output_dir):
-    """Run ablation study with different hyperparameter settings"""
-    print("\n" + "="*50) 
-    print("RUNNING ABLATION STUDY")
-    print("="*50)
-
-    # Define ablation configurations
-    ablation_configs = [
-        # Vary importance weights
-        {'alpha': 0.6, 'beta': 0.2, 'gamma': 0.2, 'name': 'high_prompt_attention'},
-        {'alpha': 0.2, 'beta': 0.4, 'gamma': 0.4, 'name': 'low_prompt_attention'},
-
-        # Vary precision thresholds
-        {'theta_h': 0.8, 'theta_m': 0.4, 'name': 'strict_precision'},
-        {'theta_h': 0.6, 'theta_m': 0.2, 'name': 'loose_precision'},
-
-        # Vary propagation ratios
-        {'early_ratio': 0.9, 'middle_ratio': 0.7, 'later_ratio': 0.5, 'name': 'conservative_propagation'},
-        {'early_ratio': 0.7, 'middle_ratio': 0.5, 'later_ratio': 0.3, 'name': 'aggressive_propagation'},
-    ]
-
-    ablation_results = {}
-
-    for i, ablation_config in enumerate(ablation_configs):
-        config_name = ablation_config.pop('name')
-        print(f"\nRunning ablation {i+1}/{len(ablation_configs)}: {config_name}")
-
-        # Create modified config
-        config = create_experiment_config(args)
-        for key, value in ablation_config.items():
-            setattr(config, key, value)
-
-        # Run experiment
-        ablation_dir = os.path.join(output_dir, "ablation", config_name)
-        os.makedirs(ablation_dir, exist_ok=True)
-
-        try:
-            model = create_compressed_llama_model(args.model_name, config, args.device)
-            evaluator = LongBenchEvaluator(model, tokenizer, config, ablation_dir)
-
-            results = evaluator.evaluate_all_tasks(
-                tasks=args.tasks[:2] if args.tasks else ['narrativeqa', 'qasper'],  # Limit tasks for ablation
-                max_samples_per_task=min(20, args.max_samples)  # Limit samples for ablation
-            )
-
-            results['ablation_config'] = {**ablation_config, 'name': config_name}
-            ablation_results[config_name] = results
-
-            # Save individual results
-            with open(os.path.join(ablation_dir, "results.json"), 'w') as f:
-                json.dump(results, f, indent=2)
-
-        except Exception as e:
-            print(f"Ablation {config_name} failed: {e}")
-            ablation_results[config_name] = {'error': str(e)}
-
-    # Save combined ablation results
-    with open(os.path.join(output_dir, "ablation_study_results.json"), 'w') as f:
-        json.dump(ablation_results, f, indent=2)
-
-    return ablation_results
 
 def main():
+    """
+    主程序流程
+    
+    執行步驟：
+    1. 參數解析和實驗設置
+    2. 配置日誌和輸出目錄
+    3. 加載分詞器和創建配置
+    4. 根據需求執行：
+       - 基準實驗（無壓縮）
+       - 主要壓縮實驗
+    5. 生成實驗總結和結果保存
+    """
     args = parse_arguments()
 
-    # Setup experiment
+    # 設置實驗 (Setup experiment)
     if args.experiment_name is None:
         args.experiment_name = f"compression_exp_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -307,11 +300,6 @@ def main():
         compression_results = run_compression_experiment(args, config, tokenizer, output_dir)
         results_summary['compressed'] = compression_results
 
-        # Run ablation study if requested
-        if args.ablation:
-            ablation_results = run_ablation_study(args, tokenizer, output_dir)
-            results_summary['ablation'] = ablation_results
-
         # Generate summary report
         print("\n" + "="*50)
         print("EXPERIMENT SUMMARY")
@@ -346,6 +334,7 @@ def main():
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     exit(main())

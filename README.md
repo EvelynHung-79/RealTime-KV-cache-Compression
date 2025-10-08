@@ -1,3 +1,5 @@
+你說得對，這兩個指令是重複的。我來統一只使用 `ablation_study.py`，並重新生成 README.md：
+
 # Real-time Prefill KV Cache Compression
 
 A PyTorch implementation of real-time KV cache compression for LLaMA2 models during the prefill stage, combining techniques from KVQuant, FastKV, and Finch.
@@ -50,35 +52,141 @@ Our method combines three core components:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd real-time-prefill-kv-cache-compression
+cd RealTime-KV-cache-Compression
 
 # Setup environment
 chmod +x scripts/setup_environment.sh
-./scripts/setup_environment.sh
+source ./scripts/setup_environment.sh
 
 # Activate environment
 source venv/bin/activate
 ```
 
-### Manual Installation
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
 ## Usage
 
-### Basic Usage
+### Download Model
+下載 LLaMA2-7B
+```bash
+chmod +x scripts/download_models.sh
+./scripts/download_models.sh meta-llama/Llama-2-7b-hf ./models/llama2-7b
+```
+
+### Basic Tests
+執行壓縮模組、重要性評分、量化的單元測試
+```bash
+# 測試壓縮模組
+pytest tests/test_compression.py -v
+
+# 測試重要性評分
+pytest tests/test_importance_scoring.py -v
+
+# 測試量化
+pytest tests/test_quantization.py -v
+```
+
+### Running Experiments
+
+#### Basic Compression Experiments
+
+**Quick Experiment (Default settings)**
+```bash
+python experiments/run_compression_experiment.py
+```
+
+**Custom Configuration**
+```bash
+# Run with custom hyperparameters
+python experiments/run_compression_experiment.py \
+    --model_name "meta-llama/Llama-2-7b-hf" \
+    --alpha 0.5 --beta 0.25 --gamma 0.25 \
+    --tasks narrativeqa qasper
+
+# Run with baseline comparison
+python experiments/run_compression_experiment.py \
+    --baseline \
+    --tasks narrativeqa qasper multifieldqa_en
+
+# Advanced configuration
+python experiments/run_compression_experiment.py \
+    --model_name "meta-llama/Llama-2-7b-hf" \
+    --alpha 0.4 --beta 0.3 --gamma 0.3 \
+    --theta_h 0.7 --theta_m 0.3 \
+    --max_samples 100 \
+    --tasks narrativeqa qasper hotpotqa \
+    --baseline \
+    --experiment_name "my_experiment"
+```
+
+#### Ablation Studies
+
+**Component Ablation (disable individual components)**
+```bash
+python experiments/ablation_study.py \
+    --model_name "meta-llama/Llama-2-7b-hf" \
+    --study_type "component" \
+    --output_dir "./ablation_results"
+```
+
+**Hyperparameter Ablation Studies**
+```bash
+# Importance weights ablation (α, β, γ)
+python experiments/ablation_study.py \
+    --study_type "importance_weights"
+
+# Precision thresholds ablation (θ_h, θ_m)
+python experiments/ablation_study.py \
+    --study_type "precision_thresholds"
+
+# Propagation ratios ablation
+python experiments/ablation_study.py \
+    --study_type "propagation_ratios"
+
+# Quantization bits ablation
+python experiments/ablation_study.py \
+    --study_type "quantization_bits"
+
+# Comprehensive ablation study (all components)
+python experiments/ablation_study.py \
+    --study_type "comprehensive"
+```
+
+#### Hyperparameter Tuning
+
+**Random Search**
+```bash
+python experiments/hyperparameter_tuning.py \
+    --method random_search \
+    --n_trials 20
+```
+
+**Bayesian Optimization**
+```bash
+python experiments/hyperparameter_tuning.py \
+    --method bayesian_optimization \
+    --n_trials 20
+```
+
+**Evolutionary Search**
+```bash
+python experiments/hyperparameter_tuning.py \
+    --method evolutionary_search \
+    --n_trials 30
+```
+
+**Compare All Methods**
+```bash
+python experiments/hyperparameter_tuning.py \
+    --method compare_all \
+    --n_trials 20
+```
+
+### Programmatic Usage Example
 
 ```python
 from src.models.modified_llama import create_compressed_llama_model
 from src.configs.base_config import CompressionConfig
 from transformers import AutoTokenizer
+import torch
 
 # Create configuration
 config = CompressionConfig(
@@ -108,39 +216,6 @@ with torch.no_grad():
 # Get compression statistics
 compression_stats = model.get_compression_stats()
 print(f"Memory savings: {compression_stats['overall_memory_savings']*100:.1f}%")
-```
-
-### Running Experiments
-
-#### Quick Experiment
-```bash
-# Run with default settings
-chmod +x scripts/run_longbench.sh
-./scripts/run_longbench.sh
-```
-
-#### Custom Configuration
-```bash
-# Run with custom hyperparameters
-ALPHA=0.5 BETA=0.25 GAMMA=0.25 ./scripts/run_longbench.sh --tasks "narrativeqa qasper"
-
-# Run with baseline comparison
-./scripts/run_longbench.sh --baseline --tasks "narrativeqa qasper multifieldqa_en"
-
-# Run full ablation study
-./scripts/run_longbench.sh --ablation
-```
-
-#### Advanced Usage
-```bash
-python experiments/run_compression_experiment.py \
-    --model_name "meta-llama/Llama-2-7b-hf" \
-    --alpha 0.4 --beta 0.3 --gamma 0.3 \
-    --theta_h 0.7 --theta_m 0.3 \
-    --max_samples 100 \
-    --tasks narrativeqa qasper hotpotqa \
-    --baseline --ablation \
-    --experiment_name "my_experiment"
 ```
 
 ## Configuration
@@ -209,6 +284,9 @@ real-time-prefill-kv-cache-compression/
 │   └── utils/               # Utility functions
 ├── configs/                 # Configuration files
 ├── experiments/            # Experiment scripts
+│   ├── run_compression_experiment.py  # Main experiments
+│   ├── ablation_study.py             # Ablation studies
+│   └── hyperparameter_tuning.py     # Hyperparameter optimization
 ├── scripts/               # Shell scripts
 └── tests/                 # Unit tests
 ```
@@ -300,6 +378,6 @@ For questions and support:
 - Check the troubleshooting section
 - Review the configuration documentation
 
----
+***
 
 **Note**: This implementation is for research purposes. For production use, additional optimizations and testing may be required.
