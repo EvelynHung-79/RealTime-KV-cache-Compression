@@ -1,5 +1,3 @@
-你說得對，這兩個指令是重複的。我來統一只使用 `ablation_study.py`，並重新生成 README.md：
-
 # Real-time Prefill KV Cache Compression
 
 A PyTorch implementation of real-time KV cache compression for LLaMA2 models during the prefill stage, combining techniques from KVQuant, FastKV, and Finch.
