@@ -63,22 +63,21 @@ source venv/bin/activate
 ## Usage
 
 ### Download Model
-下載 LLaMA2-7B
+download LLaMA2-7B
 ```bash
-chmod +x scripts/download_models.sh
-./scripts/download_models.sh meta-llama/Llama-2-7b-hf ./models/llama2-7b
+python scripts/download_model.py
 ```
 
 ### Basic Tests
-執行壓縮模組、重要性評分、量化的單元測試
+Testing on compression/importance_score/quantization modules
 ```bash
-# 測試壓縮模組
+# Compression Test
 pytest tests/test_compression.py -v
 
-# 測試重要性評分
+# Importance Score Calculation Test
 pytest tests/test_importance_scoring.py -v
 
-# 測試量化
+# Quantization Test
 pytest tests/test_quantization.py -v
 ```
 
