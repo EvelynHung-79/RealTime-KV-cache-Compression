@@ -99,7 +99,7 @@ class CompressedLlamaAttention(LlamaAttention): #繼承 LlamaAttention
         compression_info = {}
 
         # Enter compression block~
-        if self.compressor is not None and self.training == False:  # Only during inference
+        if self.compressor is not None and self.training == False and q_len > 1:  # Only during prefill stage
             try:
                 # Reshape for compression (merge batch and head dimensions temporarily)
                 k_for_compression = key_states.transpose(1, 2).contiguous()  # [batch, seq_len, heads*head_dim]

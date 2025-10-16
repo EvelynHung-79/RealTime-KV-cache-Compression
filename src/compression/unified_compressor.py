@@ -190,12 +190,29 @@ class RealTimePrefillCompressor:
 
         # Calculate cumulative compression (multiplicative effect across layers)
         cumulative_compression = 1.0
-        for layer_state in self.layer_states.values():
-            if 'propagation_info' in layer_state:
-                prop_info = layer_state['propagation_info']
-                if 'selection_stats' in prop_info:
-                    layer_ratio = prop_info.get('propagation_ratio', 1.0)
-                    cumulative_compression *= layer_ratio
+
+        # Sort layers to ensure correct cumulative product
+        sorted_layers = sorted(self.layer_states.values(), key=lambda s: s['layer_idx'])
+
+        # Calculate based on actual token reduction
+        if sorted_layers and 'original_shape' in sorted_layers[0]:
+            # Get the sequence length before any compression
+            initial_seq_len = sorted_layers[0]['original_shape'][1] 
+            
+            if initial_seq_len > 0:
+                # Get the final sequence length after the last compressed layer
+                final_seq_len = sorted_layers[-1]['compressed_shape'][1]
+                # The cumulative ratio is the ratio of final length to initial length
+                cumulative_compression = final_seq_len / initial_seq_len
+            else:
+                cumulative_compression = 1.0
+                
+        # for layer_state in self.layer_states.values():
+        #     if 'propagation_info' in layer_state:
+        #         prop_info = layer_state['propagation_info']
+        #         if 'selection_stats' in prop_info:
+        #             layer_ratio = prop_info.get('propagation_ratio', 1.0)
+        #             cumulative_compression *= layer_ratio
 
         return {
             'total_layers_processed': total_layers,
