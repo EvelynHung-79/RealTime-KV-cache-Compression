@@ -55,7 +55,8 @@ class DynamicPrecisionQuantizer:
             'medium_ratio': medium_mask.sum().item() / total_tokens,
             'low_ratio': (total_tokens - high_mask.sum().item() - medium_mask.sum().item()) / total_tokens
         }
-
+        print(f"[DEBUG] Importance Scores (min/max/mean): {importance_scores.min():.4f}/{importance_scores.max():.4f}/{importance_scores.mean():.4f}, Precision Stats: {precision_stats}")
+        
         return precision_labels, precision_stats
 
     def get_quantization_params(

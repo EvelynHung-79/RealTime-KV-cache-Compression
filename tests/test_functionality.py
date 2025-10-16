@@ -30,14 +30,14 @@ if not os.path.isdir(MODEL_PATH):
 
 config = CompressionConfig(
     model_name=MODEL_PATH,
-    alpha=0.4,   # Prompt attention weight
+    alpha=0.5,   # Prompt attention weight
     beta=0.3,    # Position bias weight
-    gamma=0.3,   # Context relevance weight
-    theta_h=0.9, # High precision threshold (保守一點)
-    theta_m=0.7, # Medium precision threshold (保守一點)
-    early_layer_ratio=0.95,
-    middle_layer_ratio=0.9,
-    later_layer_ratio=0.8
+    gamma=0.2,   # Context relevance weight
+    theta_h=0.6, # High precision threshold (保守一點)
+    theta_m=0.2, # Medium precision threshold (保守一點)
+    early_layer_ratio=0.9,
+    middle_layer_ratio=0.8,
+    later_layer_ratio=0.7
 )
 
 # ===== 3️⃣ 初始化模型與 tokenizer =====
@@ -48,7 +48,7 @@ print("✅ Model and tokenizer loaded successfully.")
 
 
 # ===== 4️⃣ 簡單測試模型是否可生成 =====
-input_text = "The capital of France is Paris. Paris is known for its beautiful architecture, museums, and culture. Can you tell me more about"
+input_text = "The capital of France is Paris. Paris is known for its beautiful architecture, museums, and culture. Can you tell me more about it."
 inputs = tokenizer(input_text, return_tensors="pt").to(device)
 
 print(f"\n🧪 Testing single text generation...\nInput: {input_text}")
@@ -61,25 +61,24 @@ compression_stats = model.get_compression_stats()
 print(f"\n💾 Memory savings (approx): {compression_stats.get('overall_memory_savings', 0)*100:.1f}%")
 print("-" * 80)
 
+# ===== 5️⃣ LongBench 評測 =====
+print("\n🏁 Starting LongBench Evaluation...")
 
-# # ===== 5️⃣ LongBench 評測 =====
-# print("\n🏁 Starting LongBench Evaluation...")
+# 初始化 evaluator
+evaluator = LongBenchEvaluator(model, tokenizer, config, output_dir="./longbench_results")
 
-# # 初始化 evaluator
-# evaluator = LongBenchEvaluator(model, tokenizer, config, output_dir="./longbench_results")
+# --- 單一任務快速測試 ---
+print("\n🎯 Evaluating single task (narrativeqa)...")
+single_task_result = evaluator.evaluate_task('narrativeqa', max_samples=3, max_new_tokens=50)
 
-# # --- 單一任務快速測試 ---
-# print("\n🎯 Evaluating single task (narrativeqa)...")
-# single_task_result = evaluator.evaluate_task('narrativeqa', max_samples=3, max_new_tokens=50)
+print("\n--- Single Task Result (narrativeqa) ---")
+print(json.dumps(single_task_result, indent=2, ensure_ascii=False))
 
-# print("\n--- Single Task Result (narrativeqa) ---")
-# print(json.dumps(single_task_result, indent=2, ensure_ascii=False))
+# --- 多任務小規模驗證 ---
+print("\n🔥 Running small-scale multi-task benchmark (narrativeqa + qasper)...")
+overall_results = evaluator.evaluate_all_tasks(tasks=['narrativeqa', 'qasper'], max_samples_per_task=2)
 
-# # --- 多任務小規模驗證 ---
-# print("\n🔥 Running small-scale multi-task benchmark (narrativeqa + qasper)...")
-# overall_results = evaluator.evaluate_all_tasks(tasks=['narrativeqa', 'qasper'], max_samples_per_task=2)
+print("\n--- Overall Results ---")
+print(json.dumps(overall_results, indent=2, ensure_ascii=False))
 
-# print("\n--- Overall Results ---")
-# print(json.dumps(overall_results, indent=2, ensure_ascii=False))
-
-# print("\n✅ Evaluation completed. Detailed results saved in ./longbench_results/\n")
+print("\n✅ Evaluation completed. Detailed results saved in ./longbench_results/\n")

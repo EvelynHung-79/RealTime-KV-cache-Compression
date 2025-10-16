@@ -63,10 +63,24 @@ class PromptGuidedImportanceScorer:
             normalized_scores: [batch, seq_len] normalized attention scores
         """
         # Z-score normalization per batch
-        mean = attention_scores.mean(dim=-1, keepdim=True)
-        std = attention_scores.std(dim=-1, keepdim=True) + 1e-8
+        # mean = attention_scores.mean(dim=-1, keepdim=True)
+        # std = attention_scores.std(dim=-1, keepdim=True) + 1e-8
+        # normalized_scores = (attention_scores - mean) / std
 
-        normalized_scores = (attention_scores - mean) / std
+        # Min-Max normalization per batch to scale scores to [0, 1]
+        batch_min = attention_scores.min(dim=-1, keepdim=True)[0]
+        batch_max = attention_scores.max(dim=-1, keepdim=True)[0]
+        
+        denominator = batch_max - batch_min
+        zeros = torch.zeros_like(attention_scores)
+    
+        # Use torch.where to safely divide. If the denominator is close to zero,
+        # use the fallback 'zeros' tensor. Otherwise, perform the division.
+        normalized_scores = torch.where(
+            denominator > 1e-8,
+            (attention_scores - batch_min) / denominator,
+            zeros
+        )
 
         return normalized_scores
 
@@ -85,6 +99,11 @@ class PromptGuidedImportanceScorer:
         Returns:
             position_bias: [seq_len] position compensation factors
         """
+
+        if seq_len <= 1:
+            # If sequence length is 1, position bias is not meaningful. Return 0.
+            return torch.zeros(seq_len, device=device).float()
+
         positions = torch.arange(1, seq_len + 1, device=device).float()
         position_bias = torch.log(positions) / math.log(seq_len)
 
