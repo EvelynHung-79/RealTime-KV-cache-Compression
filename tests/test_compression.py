@@ -1,6 +1,6 @@
 import pytest
 import torch
-from src.configs.base_config import CompressionConfig
+from configs.base_config import CompressionConfig
 from src.compression.token_importance import PromptGuidedImportanceScorer
 from src.compression.dynamic_quantization import DynamicPrecisionQuantizer
 from src.compression.selective_propagation import SelectiveTokenPropagator

@@ -1,0 +1,47 @@
+(venv) [evelyn_r76134115@localhost RealTime-KV-cache-Compression]$ PYTHONPATH=$(pwd) pytest tests/test_compression.py -v
+==================================================== test session starts ====================================================
+platform linux -- Python 3.9.20, pytest-8.4.2, pluggy-1.6.0 -- /home/evelyn_r76134115/work/RealTime-KV-cache-Compression/venv/bin/python3.9
+cachedir: .pytest_cache
+rootdir: /home/evelyn_r76134115/work/RealTime-KV-cache-Compression
+collected 3 items                                                                                                           
+
+tests/test_compression.py::TestCompressionComponents::test_importance_scorer PASSED                                   [ 33%]
+tests/test_compression.py::TestCompressionComponents::test_dynamic_quantizer PASSED                                   [ 66%]
+tests/test_compression.py::TestCompressionComponents::test_selective_propagator PASSED                                [100%]
+
+===================================================== 3 passed in 0.67s =====================================================
+
+(venv) [evelyn_r76134115@localhost RealTime-KV-cache-Compression]$ PYTHONPATH=$(pwd) pytest tests/test_importance_scoring.py -v
+============================================================================================== test session starts ===============================================================================================
+platform linux -- Python 3.9.20, pytest-8.4.2, pluggy-1.6.0 -- /home/evelyn_r76134115/work/RealTime-KV-cache-Compression/venv/bin/python3.9
+cachedir: .pytest_cache
+rootdir: /home/evelyn_r76134115/work/RealTime-KV-cache-Compression
+collected 12 items                                                                                                                                                                                               
+
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_compute_attention_aggregation PASSED                                                                                              [  8%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_normalize_attention_scores PASSED                                                                                                 [ 16%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_compute_position_bias PASSED                                                                                                      [ 25%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_compute_context_relevance PASSED                                                                                                  [ 33%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_compute_importance_scores_shape_and_properties PASSED                                                                             [ 41%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_compute_importance_scores_different_layers PASSED                                                                                 [ 50%]
+tests/test_importance_scoring.py::TestPromptGuidedImportanceScorer::test_edge_cases PASSED                                                                                                                 [ 58%]
+tests/test_importance_scoring.py::TestLayerWiseImportanceTracker::test_update_scores PASSED                                                                                                                [ 66%]
+tests/test_importance_scoring.py::TestLayerWiseImportanceTracker::test_get_cumulative_scores PASSED                                                                                                        [ 75%]
+tests/test_importance_scoring.py::TestLayerWiseImportanceTracker::test_layer_ordering PASSED                                                                                                               [ 83%]
+tests/test_importance_scoring.py::TestImportanceIntegration::test_realistic_scenario PASSED                                                                                                                [ 91%]
+tests/test_importance_scoring.py::TestImportanceIntegration::test_performance_with_long_sequences PASSED                                                                                                   [100%]
+
+=============================================================================================== 12 passed in 0.91s ===============================================================================================
+
+(venv) [evelyn_r76134115@localhost RealTime-KV-cache-Compression]$ PYTHONPATH=$(pwd) pytest tests/test_quantization.py -v
+============================================================================================== test session starts ===============================================================================================
+platform linux -- Python 3.9.20, pytest-8.4.2, pluggy-1.6.0 -- /home/evelyn_r76134115/work/RealTime-KV-cache-Compression/venv/bin/python3.9
+cachedir: .pytest_cache
+rootdir: /home/evelyn_r76134115/work/RealTime-KV-cache-Compression
+collected 3 items                                                                                                                                                                                                
+
+tests/test_quantization.py::TestDynamicPrecisionQuantizer::test_assign_precision_levels PASSED                                                                                                             [ 33%]
+tests/test_quantization.py::TestDynamicPrecisionQuantizer::test_apply_mixed_precision_quantization PASSED                                                                                                  [ 66%]
+tests/test_quantization.py::TestDynamicPrecisionQuantizer::test_estimate_memory_savings PASSED                                                                                                             [100%]
+
+=============================================================================================== 3 passed in 0.66s ================================================================================================

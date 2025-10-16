@@ -73,45 +73,18 @@ Testing on compression/importance_score/quantization modules
 ```bash
 # Compression Test
 pytest tests/test_compression.py -v
+PYTHONPATH=$(pwd) pytest tests/test_compression.py -v #設定環境變數
 
 # Importance Score Calculation Test
 pytest tests/test_importance_scoring.py -v
+PYTHONPATH=$(pwd) pytest tests/test_importance_scoring.py -v #設定環境變數
 
 # Quantization Test
 pytest tests/test_quantization.py -v
-```
+PYTHONPATH=$(pwd) pytest tests/test_quantization.py -v #設定環境變數
 
-### Running Experiments
-
-#### Basic Compression Experiments
-
-**Quick Experiment (Default settings)**
-```bash
-python experiments/run_compression_experiment.py
-```
-
-**Custom Configuration**
-```bash
-# Run with custom hyperparameters
-python experiments/run_compression_experiment.py \
-    --model_name "meta-llama/Llama-2-7b-hf" \
-    --alpha 0.5 --beta 0.25 --gamma 0.25 \
-    --tasks narrativeqa qasper
-
-# Run with baseline comparison
-python experiments/run_compression_experiment.py \
-    --baseline \
-    --tasks narrativeqa qasper multifieldqa_en
-
-# Advanced configuration
-python experiments/run_compression_experiment.py \
-    --model_name "meta-llama/Llama-2-7b-hf" \
-    --alpha 0.4 --beta 0.3 --gamma 0.3 \
-    --theta_h 0.7 --theta_m 0.3 \
-    --max_samples 100 \
-    --tasks narrativeqa qasper hotpotqa \
-    --baseline \
-    --experiment_name "my_experiment"
+# Functionality Test (FULL)
+python tests/test_functionality.py
 ```
 
 #### Ablation Studies
@@ -175,44 +148,6 @@ python experiments/hyperparameter_tuning.py \
 python experiments/hyperparameter_tuning.py \
     --method compare_all \
     --n_trials 20
-```
-
-### Programmatic Usage Example
-
-```python
-from src.models.modified_llama import create_compressed_llama_model
-from src.configs.base_config import CompressionConfig
-from transformers import AutoTokenizer
-import torch
-
-# Create configuration
-config = CompressionConfig(
-    model_name="meta-llama/Llama-2-7b-hf",
-    alpha=0.4,  # Prompt attention weight
-    beta=0.3,   # Position bias weight
-    gamma=0.3,  # Context relevance weight
-    theta_h=0.7,  # High precision threshold
-    theta_m=0.3   # Medium precision threshold
-)
-
-# Load compressed model
-model = create_compressed_llama_model(
-    "meta-llama/Llama-2-7b-hf", 
-    config, 
-    device="cuda"
-)
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
-
-# Generate with compression
-input_text = "Your long context input here..."
-inputs = tokenizer(input_text, return_tensors="pt").cuda()
-
-with torch.no_grad():
-    outputs = model.generate(**inputs, max_new_tokens=100)
-
-# Get compression statistics
-compression_stats = model.get_compression_stats()
-print(f"Memory savings: {compression_stats['overall_memory_savings']*100:.1f}%")
 ```
 
 ## Configuration
