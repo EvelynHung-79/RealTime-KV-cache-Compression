@@ -1,0 +1,62 @@
+{
+  "overall_results": {
+    "num_successful_tasks": 2,
+    "num_total_tasks": 2,
+    "overall_quality_score": 0.0,
+    "compression_performance": {
+      "overall_avg_compression_ratio": 1.0,
+      "overall_avg_memory_savings": 0.0,
+      "overall_avg_processing_time": 0.05868273973464966
+    },
+    "task_breakdown": {
+      "narrativeqa": {
+        "score": 0.0
+      },
+      "qasper": {
+        "score": 0.0
+      }
+    }
+  },
+  "task_results": {
+    "narrativeqa": {
+      "task_name": "narrativeqa",
+      "num_samples": 2,
+      "quality_metrics": {
+        "avg_f1": 0.0,
+        "avg_exact_match": 0.0
+      },
+      "compression_metrics": {
+        "avg_compression_ratio": 1.0,
+        "avg_memory_savings": 0.0,
+        "avg_processing_time": 0.058536648750305176,
+        "avg_tokens_per_second": 3.395336550941571,
+        "avg_precision_distribution": {
+          "high": 0.0,
+          "medium": 0.0,
+          "low": 1.0
+        }
+      },
+      "overall_score": 0.0
+    },
+    "qasper": {
+      "task_name": "qasper",
+      "num_samples": 2,
+      "quality_metrics": {
+        "avg_f1": 0.0,
+        "avg_exact_match": 0.0
+      },
+      "compression_metrics": {
+        "avg_compression_ratio": 1.0,
+        "avg_memory_savings": 0.0,
+        "avg_processing_time": 0.05882883071899414,
+        "avg_tokens_per_second": 3.5122700856164872,
+        "avg_precision_distribution": {
+          "high": 0.0,
+          "medium": 0.0,
+          "low": 1.0
+        }
+      },
+      "overall_score": 0.0
+    }
+  }
+}
