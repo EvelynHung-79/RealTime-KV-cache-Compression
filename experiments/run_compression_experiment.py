@@ -19,16 +19,12 @@ import time
 from datetime import datetime
 from transformers import AutoTokenizer
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from configs.base_config import CompressionConfig
-from models.modified_llama import create_compressed_llama_model
-from compression.unified_compressor import RealTimePrefillCompressor
-from evaluation.longbench_eval import LongBenchEvaluator
-from utils.memory_utils import MemoryMonitor
-from utils.eval_utils import setup_logging
-
+from src.models.modified_llama import create_compressed_llama_model
+from src.compression.unified_compressor import RealTimePrefillCompressor
+from src.evaluation.longbench_eval import LongBenchEvaluator
+from src.utils.memory_utils import MemoryMonitor
+from src.utils.eval_utils import setup_logging
 
 def parse_arguments():
     """
