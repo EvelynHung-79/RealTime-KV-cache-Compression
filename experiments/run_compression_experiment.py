@@ -163,7 +163,6 @@ def parse_arguments():
 
     return parser.parse_args()
 
-
 def create_experiment_config(args):
     """
     從命令行參數創建壓縮配置
@@ -239,7 +238,6 @@ def run_baseline_experiment(args, tokenizer, output_dir):
     }
 
     return results
-
 
 def run_compression_experiment(args, config, tokenizer, output_dir):
     """
