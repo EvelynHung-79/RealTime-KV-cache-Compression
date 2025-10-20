@@ -1,0 +1,292 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "Ourtherhood, and the 19999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "South West Ultras fan club.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 10.395869731903076,
+      "avg_processing_time_per_layer": 0.32487092912197113,
+      "avg_compression_ratio": 0.9374661062906722,
+      "avg_memory_savings": 0.06253389370932755,
+      "cumulative_compression": 0.7998915401301518,
+      "overall_memory_savings": 0.20010845986984815,
+      "precision_distribution": {
+        "high_ratio": 0.02294604121475054,
+        "medium_ratio": 0.9533792028199566,
+        "low_ratio": 0.02367475596529284
+      },
+      "generation_time": 14.418461799621582,
+      "input_length": 1844,
+      "output_length": 100,
+      "total_tokens": 1944,
+      "tokens_per_second": 6.935552584577679,
+      "ttft": 10.395869731903076
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": ".\n\n\n\n\n\n\n\n\n\nThe first time.\nThe first time.\n\n\n\n\n\n\n\n\n\nThe first time.\n\n\n\n\n\n\n\n\nThe 1999999999999999999999999999999999999999999999999999999",
+    "reference": "No, it is not necessary.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.86863875389099,
+      "avg_processing_time_per_layer": 0.7458949610590935,
+      "avg_compression_ratio": 0.7705230712890625,
+      "avg_memory_savings": 0.2294769287109375,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.44931793212890625,
+        "medium_ratio": 0.5413055419921875,
+        "low_ratio": 0.00937652587890625
+      },
+      "generation_time": 27.97737717628479,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5743164689778593,
+      "ttft": 23.86863875389099
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": "200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS).",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.8366801738739,
+      "avg_processing_time_per_layer": 0.7448962554335594,
+      "avg_compression_ratio": 0.763458251953125,
+      "avg_memory_savings": 0.236541748046875,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47908782958984375,
+        "medium_ratio": 0.5084381103515625,
+        "low_ratio": 0.01247406005859375
+      },
+      "generation_time": 27.943777799606323,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5786141987361786,
+      "ttft": 23.8366801738739
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": ".\nThe 199999999999999999999999999999999999999999999999999999999999999999999999980000000000000000000000",
+    "reference": "Implantable Cardioverter Defibrillator (ICD) is a surgically implanted electronic device to treat life-threatening heartbeat irregularities.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.916719436645508,
+      "avg_processing_time_per_layer": 0.7473974823951721,
+      "avg_compression_ratio": 0.76885986328125,
+      "avg_memory_savings": 0.23114013671875,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.4767608642578125,
+        "medium_ratio": 0.5103225708007812,
+        "low_ratio": 0.01291656494140625
+      },
+      "generation_time": 28.024240016937256,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.568339406869272,
+      "ttft": 23.916719436645508
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": ".\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThe 1999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "The sides of the fuselage are sloped to create a conical section when the fuselage is formed.",
+    "task_metrics": {
+      "f1": 0.10526315789473684,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.63073992729187,
+      "avg_processing_time_per_layer": 0.7384606227278709,
+      "avg_compression_ratio": 0.9375152587890625,
+      "avg_memory_savings": 0.0624847412109375,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.02734375,
+        "medium_ratio": 0.9459304809570312,
+        "low_ratio": 0.02672576904296875
+      },
+      "generation_time": 27.739973306655884,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.6049061365176645,
+      "ttft": 23.63073992729187
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": ".\n\n\n\n\n\nThe 1999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "It tends to suppress the Kondo effect.",
+    "task_metrics": {
+      "f1": 0.22222222222222224,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.96750259399414,
+      "avg_processing_time_per_layer": 0.7489844560623169,
+      "avg_compression_ratio": 0.7657470703125,
+      "avg_memory_savings": 0.2342529296875,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.483001708984375,
+        "medium_ratio": 0.4989471435546875,
+        "low_ratio": 0.0180511474609375
+      },
+      "generation_time": 28.081278085708618,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.561091475066903,
+      "ttft": 23.96750259399414
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "the 20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Electricity is used for transport, heating, lighting, communications, and computation.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.845930099487305,
+      "avg_processing_time_per_layer": 0.7451853156089783,
+      "avg_compression_ratio": 0.8182449340820312,
+      "avg_memory_savings": 0.18175506591796875,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.370452880859375,
+        "medium_ratio": 0.6177444458007812,
+        "low_ratio": 0.01180267333984375
+      },
+      "generation_time": 27.956037759780884,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.577044817984385,
+      "ttft": 23.845930099487305
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Vice Admiral.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 20.57000470161438,
+      "avg_processing_time_per_layer": 0.6428126469254494,
+      "avg_compression_ratio": 0.7657354396381115,
+      "avg_memory_savings": 0.23426456036188853,
+      "cumulative_compression": 0.8001130901894261,
+      "overall_memory_savings": 0.1998869098105739,
+      "precision_distribution": {
+        "high_ratio": 0.49189814814814814,
+        "medium_ratio": 0.49795907548770146,
+        "low_ratio": 0.01014277636415041
+      },
+      "generation_time": 24.6562922000885,
+      "input_length": 3537,
+      "output_length": 100,
+      "total_tokens": 3637,
+      "tokens_per_second": 4.055759851825615,
+      "ttft": 20.57000470161438
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "Ourtherhood, and the same time, and the 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "They won their first game with a score of 15-3.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 12.930298805236816,
+      "avg_processing_time_per_layer": 0.4040718376636505,
+      "avg_compression_ratio": 0.7673134410983167,
+      "avg_memory_savings": 0.232686558901683,
+      "cumulative_compression": 0.7998228520814881,
+      "overall_memory_savings": 0.20017714791851193,
+      "precision_distribution": {
+        "high_ratio": 0.4783270593445527,
+        "medium_ratio": 0.5053421169176262,
+        "low_ratio": 0.01633082373782108
+      },
+      "generation_time": 16.964041233062744,
+      "input_length": 2258,
+      "output_length": 100,
+      "total_tokens": 2358,
+      "tokens_per_second": 5.894821795475303,
+      "ttft": 12.930298805236816
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": "1999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "Vitamins K3, K4, and K5.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.82917332649231,
+      "avg_processing_time_per_layer": 0.7446616664528847,
+      "avg_compression_ratio": 0.76873779296875,
+      "avg_memory_savings": 0.23126220703125,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.4581451416015625,
+        "medium_ratio": 0.5293655395507812,
+        "low_ratio": 0.01248931884765625
+      },
+      "generation_time": 27.93768572807312,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.579394548758748,
+      "ttft": 23.82917332649231
+    }
+  }
+]

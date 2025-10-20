@@ -64,11 +64,15 @@ print("-" * 80)
 # ===== 5️⃣ LongBench 評測 =====
 print("\n🏁 Starting LongBench Evaluation...")
 
-# 初始化 evaluator
-evaluator = LongBenchEvaluator(model, tokenizer, config, output_dir="./longbench_results")
+# 定義新的輸出目錄，確保其存在
+TEST_OUTPUT_DIR = "experiments/results/test_functionality_output"
+os.makedirs(TEST_OUTPUT_DIR, exist_ok=True)
+
+# 初始化 evaluator，使用新的輸出目錄
+evaluator = LongBenchEvaluator(model, tokenizer, config, output_dir=TEST_OUTPUT_DIR)
 
 # --- 單一任務快速測試 ---
-print("\n🎯 Evaluating single task (narrativeqa)...")
+print(f"\n🎯 Evaluating single task (narrativeqa), results saved to {TEST_OUTPUT_DIR}...")
 single_task_result = evaluator.evaluate_task('narrativeqa', max_samples=3, max_new_tokens=50)
 
 print("\n--- Single Task Result (narrativeqa) ---")
@@ -81,4 +85,4 @@ overall_results = evaluator.evaluate_all_tasks(tasks=['narrativeqa', 'qasper'], 
 print("\n--- Overall Results ---")
 print(json.dumps(overall_results, indent=2, ensure_ascii=False))
 
-print("\n✅ Evaluation completed. Detailed results saved in ./longbench_results/\n")
+print(f"\n✅ Evaluation completed. Detailed results saved in: {TEST_OUTPUT_DIR}\n")

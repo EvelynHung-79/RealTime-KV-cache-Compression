@@ -1,0 +1,292 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "He is a guest in the home of the Mulvilles.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.884830474853516,
+      "avg_processing_time_per_layer": 0.7464009523391724,
+      "avg_compression_ratio": 0.7654037475585938,
+      "avg_memory_savings": 0.23459625244140625,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.4816741943359375,
+        "medium_ratio": 0.5064773559570312,
+        "low_ratio": 0.01184844970703125
+      },
+      "generation_time": 28.003506183624268,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5709814101234736,
+      "ttft": 23.884830474853516
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": ".\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t",
+    "reference": "Because she is in unrequited love with someone else",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.88458824157715,
+      "avg_processing_time_per_layer": 0.7463933825492859,
+      "avg_compression_ratio": 0.766693115234375,
+      "avg_memory_savings": 0.233306884765625,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47475433349609375,
+        "medium_ratio": 0.5090103149414062,
+        "low_ratio": 0.0162353515625
+      },
+      "generation_time": 27.988205909729004,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.572933553602266,
+      "ttft": 23.88458824157715
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": ".\nThe 200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "The Atlas Mountains",
+    "task_metrics": {
+      "f1": 0.4,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 25.193872213363647,
+      "avg_processing_time_per_layer": 0.787308506667614,
+      "avg_compression_ratio": 0.7627105712890625,
+      "avg_memory_savings": 0.2372894287109375,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47443389892578125,
+        "medium_ratio": 0.5069046020507812,
+        "low_ratio": 0.0186614990234375
+      },
+      "generation_time": 29.296958923339844,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.4133235555835646,
+      "ttft": 25.193872213363647
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": ".\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThe 200000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "To smuggle Socrates out of prison and into a life of exile.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.903047561645508,
+      "avg_processing_time_per_layer": 0.7469702363014221,
+      "avg_compression_ratio": 0.7663040161132812,
+      "avg_memory_savings": 0.23369598388671875,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47174072265625,
+        "medium_ratio": 0.5104904174804688,
+        "low_ratio": 0.01776885986328125
+      },
+      "generation_time": 28.01230478286743,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.569859773236541,
+      "ttft": 23.903047561645508
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": "th, and the same time.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThe 199999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "Otto was so young.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.8354549407959,
+      "avg_processing_time_per_layer": 0.7448579668998718,
+      "avg_compression_ratio": 0.7698211669921875,
+      "avg_memory_savings": 0.2301788330078125,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47271728515625,
+        "medium_ratio": 0.5148239135742188,
+        "low_ratio": 0.01245880126953125
+      },
+      "generation_time": 27.940712213516235,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5790068354673257,
+      "ttft": 23.8354549407959
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": ".\n\n\n\n\nThe 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Six hours.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 24.00352716445923,
+      "avg_processing_time_per_layer": 0.7501102238893509,
+      "avg_compression_ratio": 0.7716903686523438,
+      "avg_memory_savings": 0.22830963134765625,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.46674346923828125,
+        "medium_ratio": 0.5159988403320312,
+        "low_ratio": 0.0172576904296875
+      },
+      "generation_time": 28.10750412940979,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.557768755973134,
+      "ttft": 24.00352716445923
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Lisa, the blacksmith's wife.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.58137273788452,
+      "avg_processing_time_per_layer": 0.7369178980588913,
+      "avg_compression_ratio": 0.9375152587890625,
+      "avg_memory_savings": 0.0624847412109375,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.038665771484375,
+        "medium_ratio": 0.933837890625,
+        "low_ratio": 0.027496337890625
+      },
+      "generation_time": 27.692216634750366,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.6111229851680475,
+      "ttft": 23.58137273788452
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "$199999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "Dr. Janosz Poha",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.91364026069641,
+      "avg_processing_time_per_layer": 0.7473012581467628,
+      "avg_compression_ratio": 0.7767333984375,
+      "avg_memory_savings": 0.2232666015625,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.45024871826171875,
+        "medium_ratio": 0.52362060546875,
+        "low_ratio": 0.02613067626953125
+      },
+      "generation_time": 28.021409511566162,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.568699852829453,
+      "ttft": 23.91364026069641
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "She is an American.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.91149067878723,
+      "avg_processing_time_per_layer": 0.747234083712101,
+      "avg_compression_ratio": 0.7654037475585938,
+      "avg_memory_savings": 0.23459625244140625,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.4816741943359375,
+        "medium_ratio": 0.5064773559570312,
+        "low_ratio": 0.01184844970703125
+      },
+      "generation_time": 28.018184423446655,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5691106350315938,
+      "ttft": 23.91149067878723
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": ", and the 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "The scribe.",
+    "task_metrics": {
+      "f1": 0.4,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.98854351043701,
+      "avg_processing_time_per_layer": 0.7496419847011566,
+      "avg_compression_ratio": 0.7627105712890625,
+      "avg_memory_savings": 0.2372894287109375,
+      "cumulative_compression": 0.800048828125,
+      "overall_memory_savings": 0.199951171875,
+      "precision_distribution": {
+        "high_ratio": 0.47443389892578125,
+        "medium_ratio": 0.5069046020507812,
+        "low_ratio": 0.0186614990234375
+      },
+      "generation_time": 28.095789909362793,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.55925212719061,
+      "ttft": 23.98854351043701
+    }
+  }
+]

@@ -1,0 +1,172 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "hot topic. In this paper, we have studied the meta-data of viral tweets related to the election of 2016 in the United States. We have found that viral tweets containing fake news appear to have different characteristics than other viral tweets. In particular, we found that viral tweets containing fake news appear to have been created more recently. As such, Twitter users were exposed to fake news related to the election for a shorter-lived time.",
+    "reference": "Ground truth is not established in the paper",
+    "task_metrics": {
+      "f1": 0.07228915662650602,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.08351469039917,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.488708277482612,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": "GhostVLAD is an extension of the NetVLAD approach, which we discussed in the previous section. The GhostVLAD model was proposed for face recognition by Y. Zhong [10]. GhostVLAD works exactly similar to NetVLAD except it adds Ghost clusters along with the NetVLAD clusters. So, now we will have a K+G number of clusters instead of K clusters. The Ghost clusters are added to map any noisy or irrelevant content",
+    "reference": "extension of the NetVLAD, adds Ghost clusters along with the NetVLAD clusters",
+    "task_metrics": {
+      "f1": 0.22222222222222218,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 3.902360200881958,
+      "input_length": 3611,
+      "output_length": 100,
+      "total_tokens": 3711,
+      "tokens_per_second": 25.625517597632165,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": "of the models\nTo investigate the performance of the proposed models, we conduct error analysis of the models. We first examine the performance of the ARE model, which is the baseline model. Figure shows the confusion matrices for the ARE model. The confusion matrices show that the ARE model, and the TRE model. The RE model. The TRE model. The RE model. The MDRE model. The MDREA model. The MDREA model. The MDREA",
+    "reference": "the attention model, MDREA, also outperforms the best existing research results (WAP 0.690 to 0.688)",
+    "task_metrics": {
+      "f1": 0.09090909090909091,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.0940258502960205,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.425835023188593,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": "We propose to use context tweets as additional features.\n\nQuestion: What is the dataset used?\n\nAnswer: Hate and Abusive Speech on Twitter.\n\nQuestion: What is the baseline model?\n\nAnswer: CNN, RNN, and their variants.\n\nQuestion: What is the evaluation metric?\n\nAnswer: F1 score.\n\nQuestion: What is the conclusion?\n\nAnswer: The best model is RNN with LTC",
+    "reference": "using tweets that one has replied or quoted to as contextual information",
+    "task_metrics": {
+      "f1": 0.08823529411764706,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 3.7873544692993164,
+      "input_length": 3335,
+      "output_length": 100,
+      "total_tokens": 3435,
+      "tokens_per_second": 26.403654796668825,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": "as described in Section SECREF5 . We report the results for the best model (B-M) on the development set, and the best model (B-M) on the development set, as well as the best model (B-M) on the test set.\nWe can see that our model (B-M) performs well on the test set, and that the best model (B-M) on the test set is the best model (B-M) on",
+    "reference": "FoxNews, CNN, ESPN, New York Times, Time magazine, Huffington Post Weird News, The Guardian, Cartoon Network, Cooking Light, Home Cooking Adventure, Justin Bieber, Nickelodeon, Spongebob, Disney",
+    "task_metrics": {
+      "f1": 0.02150537634408602,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.098684072494507,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.398074657932547,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": "the results are obtained by averaging over 100 random splits of the training data.\nWe observe that our pairwise neural ranker outperforms all the baselines and state-of-the-art methods on both datasets. The pairwise neural ranker achieves the best performance on the STAN INLINEFORM0 dataset, and the second best performance on the STAN INLINEFORM1 dataset.\nWe also observe that the pairwise neural ranker outperforms",
+    "reference": "Yes",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.102887153625488,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.3730807735318,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "the tuples, leaving 2180 propositions per topic.\nConcept Map Generation\nTo create the concept maps, we used the concept map generation system of BIBREF40 , which is based on a graphical model of the input text. It is able to generate a concept map.\nThe concept map is a graphical model of the input. It is able to generate a concept maps that are similar to the input.\nThe concept map is able to generate a",
+    "reference": "Answer with content missing: (Evaluation Metrics section) Precision, Recall, F1-scores, Strict match, METEOR, ROUGE-2",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.110728025436401,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.326591149114964,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "processing procedure of BIBREF22. Input documents were truncated to 100 tokens.\nExperimental Setup ::: Summarization Datasets ::: Implementation Details\nWe used the pretrained BERT-of-the-art models BIBREF0, BIBREF1, BIBREF2, BIBREF3, BIBREF4, BIBREF5, BIBREF6, BIBREF7, BIBREF8,",
+    "reference": "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.105679035186768,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.35650696096145,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "The proposed approach is compared with other WSD approaches employing word embeddings in the experimental section.\n\nQuestion: How does this approach compare to other WSD approaches employing word embeddings?\n\nAnswer: The proposed approach is compared with other WSD approaches employing word embeddings in the experimental section.\n\nQuestion: How does this approach compare to other WSD approaches employing word embeddings?\n\nAnswer: The proposed approach is compared with other W",
+    "reference": "GM$\\_$KL achieves better correlation than existing approaches for various metrics on SCWS dataset.",
+    "task_metrics": {
+      "f1": 0.024691358024691357,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.027979135513306,
+      "input_length": 3825,
+      "output_length": 100,
+      "total_tokens": 3925,
+      "tokens_per_second": 24.826345081665,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": "the best models trained on the BookTest dataset outperforms the best model trained on the original CBT dataset by 1.5% absolute on named entities and by 1.3% absolute on common nouns.\nTable TABREF26 shows the performance of the psr on the CBIBREF26 , BIBREF7 , BIBREF8 , BIBREF9 , BIBREF10 , BIBREF111 , BIB",
+    "reference": "simply averaging the predictions from the constituent single models",
+    "task_metrics": {
+      "f1": 0.07017543859649122,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.110895156860352,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.325602133909403,
+      "ttft": 0
+    }
+  }
+]

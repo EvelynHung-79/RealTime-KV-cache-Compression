@@ -1,0 +1,172 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "\nwith a certain irony, that the Mulvilles had been struck with the\nmanner in which Mr. Saltram talked.  I had already, in fact,\ndiscovered that they had been struck with everything.  They had\ndiscovered him.  They had found him.  They had taken him up.  They had\ntaken him in.  They had taken him in.  They had taken him in.  They had\ntaken",
+    "reference": "He is a guest in the home of the Mulvilles.",
+    "task_metrics": {
+      "f1": 0.1111111111111111,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.344437599182129,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 23.017939081188715,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": "gyman, who had a small benefice, and lived in\nthe neighbourhood. He was a man of learning, and had a great\ntendency to virtue; but his temper was irritable, and he was not\nalways able to restrain it. He had a great regard for the poor widow, and\nwas often at her house. Mary had seen him frequently, and had a great\nrespect for him, and was much pleased with his conversation. He\ns",
+    "reference": "Because she is in unrequited love with someone else",
+    "task_metrics": {
+      "f1": 0.04819277108433735,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.041109323501587,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.74568045423499,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": "im\n Of the red light of the setting sun.                           _280\n\n 30.\n There, in the midst of the red light, she stood,\n And in her hand she held a magic wand,\n Which, when she waved, the red light would change to blue,\n And to green, and to purple, and to gold,\n And to a silver, and to a silver, and to a pall\n Of colours, and to",
+    "reference": "The Atlas Mountains",
+    "task_metrics": {
+      "f1": 0.028985507246376812,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.046654939651489,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.71176848318387,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": "s.  For I am not going to be\npersuaded by you or by any one else to do what I do not think to be\nright.  And now, Crito, I will tell you what I think, and what I think\nis the truth.  I am not persuaded by you or by any one else that I ought to\nescape from the bonds which I have broken, and which I am under the penalty of death.\n\n\nCRIT",
+    "reference": "To smuggle Socrates out of prison and into a life of exile.",
+    "task_metrics": {
+      "f1": 0.06818181818181818,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.048078536987305,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.70307803722179,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": "his lair.\"\n\nThe Baroness sat listening, listening, listening, and the old nurse\nwatched her.\n\nThe bugle sounded again, and the Baroness sprang to her feet.\n\n\"I will go,\" she cried, \"I will go forth to meet him.\"\n\n\"Nay, nay, nay, nay, nay, nay, nay, nay, nay, nay, nay,",
+    "reference": "Otto was so young.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.048403024673462,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.701098035580547,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": "ess that I am very much interested in this\nmatter.\"\n\n\"I am sure that I am very glad to have been of any service to you,\"\nsaid the clergyman.  \"I am sure that I am very glad to have been of\nany service to you,\" said the clergyman.  \"I am sure that I am very glad to have been of any service to you,\" said the clergyman.  \"I am sure that I am",
+    "reference": "Six hours.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.057180404663086,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.647659217979523,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "\t\tnot sure. \n\n<b>\t\t\t\tJOF \n</b>\t\t\t(angrily)\n\t\tYou're always making fun of me. \n\n<b>\t\t\t\t\tMIA \n</b>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t",
+    "reference": "Lisa, the blacksmith's wife.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.060372829437256,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.62828025914542,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "saying that the world is going to end in a few\n\t\t\tdays and you're not even going to be able to\n\t\t\tpromote the book?\n\n<b>\t\t\t\t\t\t\tMILTON\n</b>\t\t\t\tI'm sorry, but I'm not going to change my\n\t\t\t\tprediction.  I'm a psychic, not a fortune teller.\n\n<b",
+    "reference": "Dr. Janosz Poha",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.069857120513916,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.570887143913453,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "\nwith a certain grimness, that the Mulvilles had been right in their\nfear of the man’s being a bore.  I had already, however, begun to\nthink that he was a bore, and I had already begun to think that he was\na bore.  I had already begun to think that he was a bore, and I had\nalready begun to think that he was a bore.  I had already begun to think\nhe was",
+    "reference": "She is an American.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.080147743225098,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.508916415109113,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": "im\n With the blood of the sun's setting--and she fell                  _280_\n Into its depths, and there she lay, and dreamed.\n\n 30.\n And in her dream she saw a lady, like herself,\n Clothed in a robe of light, and crowned with a star,\n And in her hand she held a wand of gold, and of silver,\n Which she could wake the dead to",
+    "reference": "The scribe.",
+    "task_metrics": {
+      "f1": 0.03125,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.083452224731445,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.48908288784416,
+      "ttft": 0
+    }
+  }
+]

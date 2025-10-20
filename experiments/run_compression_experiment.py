@@ -19,12 +19,87 @@ import time
 from datetime import datetime
 from transformers import AutoTokenizer
 
+# Add root directory to sys.path
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, ROOT_DIR)
+
 from configs.base_config import CompressionConfig
 from src.models.modified_llama import create_compressed_llama_model
 from src.compression.unified_compressor import RealTimePrefillCompressor
 from src.evaluation.longbench_eval import LongBenchEvaluator
 from src.utils.memory_utils import MemoryMonitor
 from src.utils.eval_utils import setup_logging
+
+def save_simplified_summary(args, results_summary, output_dir):
+    """
+    Consolidate Baseline and Compressed results into a single simplified summary file.
+    """
+    simplified_data = {
+        'metadata': {
+            'experiment_name': args.experiment_name,
+            'model_name': args.model_name,
+            'device': args.device,
+            'timestamp': datetime.now().isoformat()
+        },
+        'hyperparameters': {
+            'alpha': args.alpha,
+            'beta': args.beta,
+            'gamma': args.gamma,
+            'theta_h': args.theta_h,
+            'theta_m': args.theta_m,
+            'early_ratio': args.early_ratio,
+            'middle_ratio': args.middle_ratio,
+            'later_ratio': args.later_ratio,
+            'max_length': args.max_length,
+        },
+        'results': {}
+    }
+
+    # 處理 Baseline 結果 (修正 KeyError)
+    if 'baseline' in results_summary and results_summary['baseline']:
+        # results_summary['baseline'] 本身就是 overall_results
+        baseline_results = results_summary['baseline'] 
+        
+        simplified_data['results']['baseline'] = {
+            # 檢查結果是否包含整體得分，避免實驗失敗時報錯
+            'overall_quality_score': baseline_results.get('overall_quality_score', 'N/A'), 
+            'total_tasks': baseline_results.get('num_total_tasks', 0),
+            'task_breakdown': baseline_results.get('task_breakdown', {}).get('task_breakdown', {}) # 這裡可能需要根據實際返回結構調整
+        }
+
+    # 處理 Compressed 結果 (修正 KeyError)
+    if 'compressed' in results_summary and results_summary['compressed']:
+        compressed_results = results_summary['compressed']
+        comp_perf = compressed_results.get('compression_performance', {})
+        
+        simplified_data['results']['compressed'] = {
+            'overall_quality_score': compressed_results.get('overall_quality_score', 'N/A'),
+            'avg_memory_savings': comp_perf.get('overall_avg_memory_savings', 'N/A'),
+            'avg_compression_ratio': comp_perf.get('overall_avg_compression_ratio', 'N/A'),
+            'total_tasks': compressed_results.get('num_total_tasks', 0),
+            'task_breakdown': compressed_results.get('task_breakdown', {}).get('task_breakdown', {}) # 這裡可能需要根據實際返回結構調整
+        }
+    
+    # 修正：確保 task_breakdown 的存取不會因為 evaluate_all_tasks 的結構而報錯
+    def extract_task_breakdown(result):
+        # 根據 longbench_eval.py 的 evaluate_all_tasks 返回結構
+        if 'task_breakdown' in result:
+            return {task: data.get('score', 'N/A') for task, data in result['task_breakdown'].items()}
+        return {}
+
+    if 'baseline' in results_summary and results_summary['baseline']:
+        simplified_data['results']['baseline']['task_breakdown'] = extract_task_breakdown(results_summary['baseline'])
+
+    if 'compressed' in results_summary and results_summary['compressed']:
+        simplified_data['results']['compressed']['task_breakdown'] = extract_task_breakdown(results_summary['compressed'])
+
+
+    # 儲存精簡結果到 experiment_summary.json
+    summary_path = os.path.join(output_dir, "experiment_summary.json")
+    with open(summary_path, 'w') as f:
+        json.dump(simplified_data, f, indent=2)
+        
+    return simplified_data
 
 def parse_arguments():
     """
@@ -115,7 +190,6 @@ def create_experiment_config(args):
     )
     return config
 
-
 def run_baseline_experiment(args, tokenizer, output_dir):
     """
     運行基準實驗（無壓縮）
@@ -164,9 +238,6 @@ def run_baseline_experiment(args, tokenizer, output_dir):
         'timestamp': datetime.now().isoformat()
     }
 
-    with open(os.path.join(baseline_dir, "baseline_results.json"), 'w') as f:
-        json.dump(results, f, indent=2)
-
     return results
 
 
@@ -202,7 +273,7 @@ def run_compression_experiment(args, config, tokenizer, output_dir):
     evaluator = LongBenchEvaluator(model, tokenizer, config, compression_dir)
 
     # Run evaluation
-    print(f"Starting evaluation on {len(args.tasks or evaluator.LONGBENCH_TASKS)} tasks...")
+    # print(f"Starting evaluation on {len(args.tasks or evaluator.LONGBENCH_TASKS)} tasks...")
     start_time = time.time()
 
     results = evaluator.evaluate_all_tasks(
@@ -224,10 +295,6 @@ def run_compression_experiment(args, config, tokenizer, output_dir):
         'timestamp': datetime.now().isoformat(),
         'args': vars(args)
     }
-
-    # Save results
-    with open(os.path.join(compression_dir, "compression_results.json"), 'w') as f:
-        json.dump(results, f, indent=2)
 
     # Save model if requested
     if args.save_model:
@@ -296,6 +363,9 @@ def main():
         compression_results = run_compression_experiment(args, config, tokenizer, output_dir)
         results_summary['compressed'] = compression_results
 
+        # Save full results
+        simplified_summary = save_simplified_summary(args, results_summary, output_dir)
+
         # Generate summary report
         print("\n" + "="*50)
         print("EXPERIMENT SUMMARY")
@@ -303,16 +373,13 @@ def main():
 
         if 'compressed' in results_summary:
             comp_results = results_summary['compressed']
+            # 所有被評測的 LongBench 任務上的平均表現
             print(f"Overall Quality Score: {comp_results.get('overall_quality_score', 'N/A'):.4f}")
 
             if 'compression_performance' in comp_results:
                 comp_perf = comp_results['compression_performance']
                 print(f"Memory Savings: {comp_perf.get('overall_avg_memory_savings', 0)*100:.1f}%")
                 print(f"Compression Ratio: {comp_perf.get('overall_avg_compression_ratio', 1.0):.3f}")
-
-        # Save final summary
-        with open(os.path.join(output_dir, "experiment_summary.json"), 'w') as f:
-            json.dump(results_summary, f, indent=2)
 
         print(f"\nExperiment completed successfully!")
         print(f"Results saved to: {output_dir}")

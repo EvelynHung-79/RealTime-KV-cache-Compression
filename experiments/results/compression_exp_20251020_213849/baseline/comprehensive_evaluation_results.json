@@ -1,0 +1,85 @@
+{
+  "overall_results": {
+    "num_successful_tasks": 3,
+    "num_total_tasks": 3,
+    "overall_quality_score": 0.07495848199318483,
+    "compression_performance": {
+      "overall_avg_compression_ratio": 1.0,
+      "overall_avg_memory_savings": 0.0,
+      "overall_avg_processing_time": 0.0
+    },
+    "task_breakdown": {
+      "narrativeqa": {
+        "score": 0.028772120762364344
+      },
+      "qasper": {
+        "score": 0.059002793684073476
+      },
+      "multifieldqa_en": {
+        "score": 0.1371005315331167
+      }
+    }
+  },
+  "task_results": {
+    "narrativeqa": {
+      "task_name": "narrativeqa",
+      "num_samples": 10,
+      "quality_metrics": {
+        "avg_f1": 0.028772120762364344,
+        "avg_exact_match": 0.0
+      },
+      "compression_metrics": {
+        "avg_compression_ratio": 1.0,
+        "avg_memory_savings": 0.0,
+        "avg_processing_time": 0.0,
+        "avg_tokens_per_second": 24.472439001540156,
+        "avg_precision_distribution": {
+          "high": 0.0,
+          "medium": 0.0,
+          "low": 0.0
+        }
+      },
+      "overall_score": 0.028772120762364344
+    },
+    "qasper": {
+      "task_name": "qasper",
+      "num_samples": 10,
+      "quality_metrics": {
+        "avg_f1": 0.059002793684073476,
+        "avg_exact_match": 0.0
+      },
+      "compression_metrics": {
+        "avg_compression_ratio": 1.0,
+        "avg_memory_savings": 0.0,
+        "avg_processing_time": 0.0,
+        "avg_tokens_per_second": 24.754991645208737,
+        "avg_precision_distribution": {
+          "high": 0.0,
+          "medium": 0.0,
+          "low": 0.0
+        }
+      },
+      "overall_score": 0.059002793684073476
+    },
+    "multifieldqa_en": {
+      "task_name": "multifieldqa_en",
+      "num_samples": 10,
+      "quality_metrics": {
+        "avg_f1": 0.1371005315331167,
+        "avg_exact_match": 0.0
+      },
+      "compression_metrics": {
+        "avg_compression_ratio": 1.0,
+        "avg_memory_savings": 0.0,
+        "avg_processing_time": 0.0,
+        "avg_tokens_per_second": 22.922259719804785,
+        "avg_precision_distribution": {
+          "high": 0.0,
+          "medium": 0.0,
+          "low": 0.0
+        }
+      },
+      "overall_score": 0.1371005315331167
+    }
+  }
+}
