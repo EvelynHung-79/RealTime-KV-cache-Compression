@@ -1,212 +1,192 @@
-***
-# 專案架構與檔案說明
+# 專案架構與檔案說明 (串流式 KVQuant 量化版)
 
-## Repository Structure
+本文件說明 Real-time Prefill KV Cache Compression 專案的架構，採用基於 KVQuant 思想的即時串流 KV Cache 量化方法，並特別處理 Attention Sink 與 Outliers。此版本**不包含**選擇性傳播 (Selective Propagation) 或複雜的 Token 重要性評分。
+
+## Repository Structure (更新後)
 
 ```
+
 real-time-prefill-kv-cache-compression/
 ├── README.md
 ├── requirements.txt
-├── setup.py
+├── setup.py \# (如果有的話)
 ├── configs/
-│   ├── __init__.py
-│   ├── base_config.py
-│   └── model_configs/
-│       ├── __init__.py
-│       ├── llama2_7b.py
-│       └── llama2_13b.py
+│   ├── **init**.py
+│   ├── base\_config.py \# 更新：包含串流、量化位元、Sink/Outlier 參數
+│   └── model\_configs/ \# (可選，存放特定模型基礎參數)
+│       ├── **init**.py
+│       ├── llama2\_7b.py
+│       └── llama2\_13b.py
 ├── src/
-│   ├── __init__.py
+│   ├── **init**.py
 │   ├── models/
-│   │   ├── __init__.py
-│   │   ├── modified_llama.py
-│   │   └── compression_layers.py
+│   │   ├── **init**.py
+│   │   ├── modified\_llama.py \# 更新：實現分塊處理、串流量化、Sink/Outlier 感知
+│   │   └── compression\_layers.py \# (可選，可能包含輔助層如 QuantizedLinear)
 │   ├── compression/
-│   │   ├── __init__.py
-│   │   ├── token_importance.py
-│   │   ├── dynamic_quantization.py
-│   │   ├── selective_propagation.py
-│   │   └── unified_compressor.py
+│   │   ├── **init**.py
+│   │   ├── streaming\_quantization.py \# 新增：包含串流統計管理器和量化函數
+│   │   └── unified\_compressor.py \# 更新：主要負責持有和重置統計管理器
 │   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── memory_utils.py
-│   │   ├── eval_utils.py
-│   │   └── data_utils.py
+│   │   ├── **init**.py
+│   │   ├── memory\_utils.py
+│   │   ├── eval\_utils.py
+│   │   └── data\_utils.py
 │   └── evaluation/
-│       ├── __init__.py
-│       ├── longbench_eval.py
-│       ├── metrics.py
-│       └── benchmark_runner.py
+│       ├── **init**.py
+│       ├── longbench\_eval.py \# 更新：需適配新的統計數據獲取方式
+│       ├── metrics.py \# 更新：需調整指標計算（基於位元數而非 Token 數）
+│       └── benchmark\_runner.py \# 更新：測試配置和指標需調整
 ├── experiments/
-│   ├── __init__.py
-│   ├── run_compression_experiment.py
-│   ├── ablation_study.py
-│   └── hyperparameter_tuning.py
-├── tests/
-│   ├── __init__.py
-│   ├── test_compression.py
-│   ├── test_importance_scoring.py
-│   └── test_quantization.py
+│   ├── **init**.py
+│   ├── run\_compression\_experiment.py \# 更新：使用新配置參數和流程
+│   ├── ablation\_study.py \# 更新：需基於新參數重寫消融實驗
+│   └── hyperparameter\_tuning.py \# 更新：需基於新參數重寫搜索空間和目標函數
+├── tests/ \# 更新：需重寫測試以驗證新架構
+│   ├── **init**.py
+│   ├── test\_compression.py \# 需重寫，測試串流、量化整合
+│   └── test\_quantization.py \# 需重寫，測試 streaming\_quantization.py
 └── scripts/
-    ├── download_models.sh
-    └── setup_environment.sh
-```
-
-## Execution Flow
+├── download\_model.py \# (原 download\_models.sh 已改為 .py)
+└── setup\_environment.sh
 
 ```
-run_compression_experiment.py
-    ↓
-src/models/modified_llama.py
-    → 創建壓縮版 LLaMA 模型
-    → 註冊 hook 和壓縮器
-    ↓
-src/compression/unified_compressor.py
-    → 協調整個壓縮流程
-    ↓
-    → src/compression/token_importance.py
-        → 計算 token 重要性分數
-    ↓
-    → src/compression/dynamic_quantization.py
-        → 執行動態精度分配
-    ↓
-    → src/compression/selective_propagation.py
-        → 執行選擇性傳播
-    ↓
-src/evaluation/longbench_eval.py
-    → 執行 LongBench 評估
-    ↓
+
+## Execution Flow (更新後)
+
+```
+
+run\_compression\_experiment.py
+↓
+src/models/modified\_llama.py (create\_compressed\_llama\_model)
+→ 創建壓縮版 LLaMA 模型 (內含 StreamingStatisticsManager)
+↓
+src/models/modified\_llama.py (CompressedLlamaAttention.forward - Prefill 階段)
+→ 將輸入 hidden\_states 分塊 (Chunking)
+→ 對每個 Chunk:
+→ 計算 K, V (高精度)
+→ **(Pre-RoPE)** 更新 Key 的串流統計 (EMA Absmax) 並檢測 Outlier (調用 StreamingStatisticsManager)
+→ **(Pre-RoPE)** 計算 Key 量化參數 (考慮 Sink/Outlier 狀態)
+→ **(Pre-RoPE)** 量化 Key Chunk (調用 streaming\_quantization 函數)
+→ 將量化 Key 存入 KV Cache
+→ 應用 RoPE (使用高精度或臨時反量化 K/V)
+→ **(Post-RoPE)** 更新 Value 的串流統計並檢測 Outlier
+→ **(Post-RoPE)** 計算 Value 量化參數 (考慮 Sink/Outlier 狀態)
+→ **(Post-RoPE)** 量化 Value Chunk
+→ 將量化 Value 存入 KV Cache
+→ 使用 **高精度** Q, K\_rope, V\_rope 計算 Attention Output Chunk
+→ 合併所有 Attention Output Chunks
+→ 傳遞高精度 Hidden States 到下一層 (所有 Tokens)
+↓
+(逐層重複 Attention 模組流程)
+↓
+src/evaluation/longbench\_eval.py
+→ 執行 LongBench 評估 (使用帶量化 KV Cache 的模型)
+↓
 src/utils/
-    → memory_utils.py (監控記憶體使用)
-    → eval_utils.py (計算評估指標)
-    → data_utils.py (載入和預處理資料)
+→ memory\_utils.py (監控記憶體使用)
+→ eval\_utils.py (計算評估指標, 如 F1, ROUGE)
+→ data\_utils.py (載入和預處理資料)
+
 ```
 
-## Directory & File Descriptions
+## Directory & File Descriptions (更新後)
 
 ### 1. `configs/`
-配置文件目錄，管理所有實驗參數
+配置文件目錄，管理所有實驗參數。
 
 - **`base_config.py`**
-  - 儲存所有壓縮相關的超參數（layer 傳播比例、精度閾值、重要性權重等）
-  - 供主程式與各模組讀取，確保所有流程參數一致
-  - 定義 `CompressionConfig` 類別
+  - **核心配置**: 定義 `CompressionConfig` dataclass。
+  - **新增參數**: 包含串流處理 (`chunk_size`)、串流統計 (`ema_decay`)、Outlier 檢測 (`outlier_threshold_abs`, `outlier_threshold_relative`)、Attention Sink (`attention_sink_size`) 以及 Key/Value 在不同情況下的量化位元數 (`key_bits_normal`, `key_bits_sink_outlier`, `value_bits_normal`, `value_bits_sink_outlier`)、Value 分組 (`value_quant_groups`) 等參數。
+  - **移除參數**: 移除了與重要性評分 (alpha, beta, gamma, theta\_h/m) 和選擇性傳播 (ratios) 相關的參數。
 
 - **`model_configs/`**
-  - **`llama2_7b.py`**: LLaMA2-7B 專用配置
-  - **`llama2_13b.py`**: LLaMA2-13B 專用配置
+  - (可選) 存放特定基礎模型（如 llama2-7b）的固有參數。
 
 ### 2. `src/compression/`
-核心壓縮模組，實現即時 KV cache 壓縮
+核心壓縮模組，實現即時 KV cache 串流量化。
 
-- **`token_importance.py`**
-  - 實作 token 重要性評分公式（prompt-guided 三項式）
-  - 提供 `PromptGuidedImportanceScorer` 類別
-  - 可根據 config 調整權重 (α, β, γ)
-
-- **`dynamic_quantization.py`**
-  - 根據重要性分數分配不同量化精度（2/4/8 bit）
-  - 提供 `DynamicPrecisionQuantizer` 類別
-  - 執行混合精度量化
-
-- **`selective_propagation.py`**
-  - 根據重要性分數與層級預算選擇要傳播的 tokens
-  - 提供 `SelectiveTokenPropagator` 類別
-  - 支援 per-layer ratio 與 drop 機制
+- **`streaming_quantization.py`** (新增)
+  - **`StreamingStatisticsManager`**:
+    - 管理 Key (Per-channel) 和 Value (Group-wise/Per-channel) 的 EMA Absmax 運行統計量。
+    - 內建 Outlier 檢測邏輯，標記異常通道/分組。
+    - 提供接口更新統計、獲取統計、查詢 Outlier 狀態、重置狀態。
+  - **量化函數**:
+    - `calculate_scale`: 計算對稱量化的 scale。
+    - `quantize_symmetric`: 執行對稱量化。
+    - `dequantize_symmetric`: 執行反量化。
+    - `quantize_chunk`: 核心函數，根據 Sink/Outlier 狀態選擇合適位元數，調用量化函數處理數據區塊。
 
 - **`unified_compressor.py`**
-  - 整合上述三個模組，實現完整壓縮流程
-  - 提供 `RealTimePrefillCompressor` 類別
-  - 高階 API：`compress_layer_kv_cache()`
+  - **職責簡化**: 主要負責在模型初始化時創建 `StreamingStatisticsManager` 實例。
+  - **`reset_compression_state`**: 提供重置 `StreamingStatisticsManager` 狀態的接口。
+  - **`get_overall_compression_stats`**: 提供獲取量化相關統計數據（如 Outlier 比例、估計記憶體節省）的接口。
 
 ### 3. `src/models/`
-模型架構修改與整合
+模型架構修改與整合。
 
 - **`modified_llama.py`**
-  - 修改 LLaMA2 模型以支援 KV cache 壓縮
-  - 提供 `CompressedLlamaAttention` 和 `CompressedLlamaForCausalLM`
-  - 在每個 transformer layer 插入壓縮流程
+  - **`CompressedLlamaAttention`**:
+    - **核心修改**: 實現 Prefill 階段的**分塊 (Chunking)** 處理邏輯。
+    - **串流量化整合**: 在處理每個 chunk 時，調用 `StreamingStatisticsManager` 更新統計並檢測 Outlier，調用 `streaming_quantization.py` 中的函數執行 Key (Pre-RoPE, Per-channel) 和 Value (Post-RoPE, Group-wise/Simplified) 的量化。
+    - **Sink/Outlier 感知**: 將 token 索引傳遞給量化函數，以實現對 Sink tokens 和 Outlier 通道/分組的特殊精度處理。
+    - **KV Cache 管理**: 負責將量化後的 K/V chunk 存入快取 (可能需要自定義快取結構或修改 `past_key_value` 的處理)。
+    - **注意力計算**: 確保使用高精度（或反量化後）的 Q, K, V 進行注意力計算。
+    - **階段區分**: 包含簡單邏輯區分 Prefill 和 Decode 階段，Decode 階段直接使用（並更新）量化快取。
+  - **`CompressedLlamaDecoderLayer`**: 封裝 `CompressedLlamaAttention`，確保參數正確傳遞。
+  - **`CompressedLlamaForCausalLM`**:
+    - 在初始化時創建並持有 `StreamingStatisticsManager` 實例。
+    - 將 `StreamingStatisticsManager` 實例和 `CompressionConfig` 注入到每一層的 `CompressedLlamaDecoderLayer`。
+    - 提供 `reset_compression_state` 接口調用管理器的重置方法。
 
 - **`compression_layers.py`**
-  - 自訂壓縮相關的神經網路層
-  - 提供 `CompressedKVCache`、`QuantizedLinear` 等工具
+  - (可選) 可能包含一些輔助層，例如用於模型權重量化的 `QuantizedLinear`。`CompressedKVCache` 的部分邏輯可能已被整合進 `CompressedLlamaAttention`。
 
 ### 4. `src/evaluation/`
-評估與基準測試模組
+評估與基準測試模組。
 
 - **`longbench_eval.py`**
-  - LongBench 資料集評估器
-  - 提供 `LongBenchEvaluator` 類別
-  - 支援 13 個長文本任務的評估
+  - **評估器**: 提供 `LongBenchEvaluator` 類別。
+  - **更新**: 需要調整從 `model.get_compression_stats()` 獲取和聚合統計數據的方式，以匹配新架構的輸出。
 
 - **`metrics.py`**
-  - 實作各種評估指標（F1、ROUGE-L、EM 等）
-  - 提供 `CompressionMetrics` 類別
-  - 計算壓縮率、記憶體節省等指標
+  - **指標計算**: 實作 F1、ROUGE-L 等任務指標。
+  - **`CompressionMetrics`**: 需要重構，不再計算基於 token 數量的壓縮率，而是收集和報告量化相關指標（如平均位元數、Outlier 比例、估計記憶體節省）。
 
 - **`benchmark_runner.py`**
-  - 批次實驗執行與結果收集
-  - 提供 `CompressionBenchmark` 類別
-  - 支援多配置比較與視覺化
+  - **基準測試**: 提供 `CompressionBenchmark` 類別。
+  - **更新**: 需要更新測試配置的生成方式和結果分析邏輯，以適應新的超參數和評估指標。
 
 ### 5. `src/utils/`
-通用工具函數
+通用工具函數。
 
-- **`data_utils.py`**
-  - 資料載入、預處理、tokenization
-  - 提供 `LongBenchDataLoader` 和 `DataCollator`
-  - 支援 LongBench 資料集處理
-
-- **`memory_utils.py`**
-  - 記憶體監控工具
-  - 提供 `MemoryMonitor` 類別
-  - 追踪 GPU/CPU 記憶體使用
-
-- **`eval_utils.py`**
-  - 評估相關的輔助函數
-  - 提供 logging、metrics 計算等工具
-  - 包含 `PerformanceTimer` 類別
+- **`memory_utils.py`**: 提供 `MemoryMonitor` 類別，功能不變。
+- **`eval_utils.py`**: 包含 logging、任務指標計算函數，功能不變。
+- **`data_utils.py`**: 數據加載與預處理，功能不變。
 
 ### 6. `experiments/`
-實驗執行腳本
+實驗執行腳本。
 
 - **`run_compression_experiment.py`**
-  - **主實驗腳本**，串接所有模組執行完整壓縮流程與評估
-  - 支援自訂超參數、任務選擇、baseline 比較
-  - 產生實驗報告與統計資料
+  - **主實驗腳本**: 串接所有模組執行量化流程與評估。
+  - **更新**: 使用新的配置參數，調用更新後的模型和評估流程，記錄新的統計指標。
 
 - **`ablation_study.py`**
-  - 自動化消融研究腳本
-  - 測試不同組件對結果的影響
-  - 包含 5 種消融實驗類型
+  - **消融研究**: 自動化測試不同參數設定的影響。
+  - **更新**: 需要基於新的配置參數（如 chunk\_size, ema\_decay, bits, sink\_size）重新設計消融實驗。
 
 - **`hyperparameter_tuning.py`**
-  - 超參數自動搜尋
-  - 支援 Random Search、Bayesian Optimization、Evolutionary Search
-  - 找出最佳壓縮/品質平衡點
+  - **超參數自動搜尋**: 尋找最佳參數組合。
+  - **更新**: 需要基於新的配置參數重新定義搜索空間和目標函數。
 
 ### 7. `tests/`
-單元測試與功能測試
+單元測試與功能測試。
 
-- **`test_compression.py`**
-  - 測試整體壓縮流程
-  - 驗證 `unified_compressor.py`
-
-- **`test_importance_scoring.py`**
-  - 測試 token 重要性評分
-  - 驗證三項式公式計算
-
-- **`test_quantization.py`**
-  - 測試動態量化模組
-  - 驗證精度分配與壓縮效果
+- **`test_compression.py`**: (需重寫) 測試 `modified_llama.py` 中分塊、量化、統計更新的整合邏輯。
+- **`test_quantization.py`**: (需重寫) 測試 `streaming_quantization.py` 中的統計更新、Outlier 檢測、量化函數在不同情況下（Sink, Outlier, Normal）的正確性。
 
 ### 8. `scripts/`
-自動化腳本
+自動化腳本。
 
-- **`setup_environment.sh`**
-  - 自動安裝依賴、建立虛擬環境
-  - 設定 PYTHONPATH
-
-- **`download_models.sh`**
-  - 自動下載 LLaMA2 模型與 tokenizer
-  - 處理 Hugging Face 權限
+- **`setup_environment.sh`**: 環境設置，功能不變。
+- **`download_model.py`**: 下載模型，功能不變。

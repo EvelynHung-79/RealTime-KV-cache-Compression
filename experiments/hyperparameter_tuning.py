@@ -1,22 +1,30 @@
 import torch
 import json
 import os
+import sys
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional
 import optuna
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import Matern
+# from sklearn.gaussian_process import GaussianProcessRegressor # Bayesian Optimization改用Optuna內建的
+# from sklearn.gaussian_process.kernels import Matern # Bayesian Optimization改用Optuna內建的
 import pandas as pd
+from transformers import AutoTokenizer
 
-from ..models.modified_llama import create_compressed_llama_model
-from ..configs.base_config import CompressionConfig
-from ..evaluation.longbench_eval import LongBenchEvaluator
-from ..utils.memory_utils import MemoryMonitor
+# --- Add root directory to sys.path ---
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, ROOT_DIR)
+# --- Imports from your project ---
+# 確保引用路徑正確
+from src.models.modified_llama import create_compressed_llama_model
+from configs.base_config import CompressionConfig
+from src.evaluation.longbench_eval import LongBenchEvaluator
+from src.utils.memory_utils import MemoryMonitor
 
 class HyperparameterTuner:
     """
-    Hyperparameter optimization for Real-time Prefill KV Cache Compression
-    Supports multiple optimization strategies: Grid Search, Random Search, Bayesian Optimization
+    Hyperparameter optimization for Streaming KVQuant Quantization.
+    Supports multiple optimization strategies: Grid Search, Random Search, Bayesian Optimization, Evolutionary Search.
+    Updated for the new architecture (no selective propagation, streaming stats).
     """
 
     def __init__(
@@ -28,171 +36,237 @@ class HyperparameterTuner:
         self.model_name = model_name
         self.device = device
         self.output_dir = output_dir
-        self.evaluation_history = []
+        self.evaluation_history = [] # Tracks results for each trial
 
         os.makedirs(output_dir, exist_ok=True)
 
         # Load tokenizer
-        from transformers import AutoTokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-    def define_search_space(self) -> Dict[str, Tuple]:
-        """Define hyperparameter search space"""
+        print(f"HyperparameterTuner initialized for model: {model_name} on device: {device}")
+        print(f"Results will be saved to: {output_dir}")
 
+    def define_search_space(self) -> Dict[str, Any]:
+        """Define hyperparameter search space for the new architecture"""
+
+        # Using Optuna suggestion types directly for Bayesian Optimization compatibility
         return {
-            # Importance scoring weights
-            'alpha': (0.1, 0.8),      # Prompt attention weight
-            'beta': (0.05, 0.5),      # Position bias weight  
-            'gamma': (0.05, 0.5),     # Context relevance weight
+            # Streaming and Chunking
+            'chunk_size': ('suggest_categorical', [128, 256, 512]), # Categorical choice
 
-            # Precision thresholds
-            'theta_h': (0.5, 0.9),    # High precision threshold
-            'theta_m': (0.1, 0.5),    # Medium precision threshold
+            # Streaming Statistics (EMA Absmax)
+            'ema_decay': ('suggest_float', [0.95, 0.999]), # Float range
 
-            # Layer propagation ratios
-            'early_layer_ratio': (0.6, 1.0),
-            'middle_layer_ratio': (0.4, 0.8),
-            'later_layer_ratio': (0.2, 0.6),
+            # Outlier Detection (Optional tuning - can be fixed)
+            # 'outlier_threshold_abs': ('suggest_float', [4.0, 8.0]),
+            # 'outlier_threshold_relative': ('suggest_float', [3.0, 7.0]),
 
-            # Memory budget constraints
-            'memory_budget_ratio': (0.3, 0.8),
-            'quality_loss_tolerance': (0.01, 0.1)
+            # Attention Sink Handling
+            'attention_sink_size': ('suggest_int', [4, 16]), # Integer range
+
+            # Quantization Settings (Key) - Focus on normal bits, keep sink/outlier high
+            'key_bits_normal': ('suggest_int', [4, 8]), # Integer range (e.g., 4 or 8)
+            # 'key_bits_sink_outlier': ('suggest_int', [8, 8]), # Usually fixed at 8
+
+            # Quantization Settings (Value) - Focus on normal bits
+            'value_bits_normal': ('suggest_int', [2, 6]), # Integer range (e.g., 2, 4, maybe 6)
+            # 'value_bits_sink_outlier': ('suggest_int', [8, 8]), # Usually fixed at 8
+
+            # Value Quantization Grouping (Example: -1 for per-channel, 64 for group size)
+            # This might be better fixed or explored separately due to its structural impact
+            # 'value_quant_groups': ('suggest_categorical', [-1, 64]), # Per-channel or groups of 64
         }
 
-    def create_config_from_params(self, params: Dict[str, float]) -> CompressionConfig:
-        """Create configuration from hyperparameters"""
+    def create_config_from_params(self, params: Dict[str, Any]) -> CompressionConfig:
+        """Create CompressionConfig from sampled hyperparameters"""
 
-        # Normalize importance weights to sum to 1
-        alpha = params['alpha']
-        beta = params['beta']
-        gamma = params['gamma']
+        # Create a base config and override with tuned parameters
+        # Need to load actual model config to get num_layers etc. if base_config doesn't have them
+        # For simplicity, assume base_config provides reasonable defaults
+        config = CompressionConfig(model_name=self.model_name)
 
-        total = alpha + beta + gamma
-        alpha = alpha / total
-        beta = beta / total
-        gamma = gamma / total
+        config.chunk_size = params['chunk_size']
+        config.ema_decay = params['ema_decay']
+        # config.outlier_threshold_abs = params.get('outlier_threshold_abs', 6.0) # Use default if not tuned
+        # config.outlier_threshold_relative = params.get('outlier_threshold_relative', 5.0) # Use default if not tuned
+        config.attention_sink_size = params['attention_sink_size']
+        config.key_bits_normal = params['key_bits_normal']
+        # config.key_bits_sink_outlier = params.get('key_bits_sink_outlier', 8) # Use default
+        config.value_bits_normal = params['value_bits_normal']
+        # config.value_bits_sink_outlier = params.get('value_bits_sink_outlier', 8) # Use default
+        # config.value_quant_groups = params.get('value_quant_groups', -1) # Use default
 
-        return CompressionConfig(
-            model_name=self.model_name,
-            alpha=alpha,
-            beta=beta, 
-            gamma=gamma,
-            theta_h=params['theta_h'],
-            theta_m=params['theta_m'],
-            early_layer_ratio=params['early_layer_ratio'],
-            middle_layer_ratio=params['middle_layer_ratio'],
-            later_layer_ratio=params['later_layer_ratio'],
-            memory_budget_ratio=params['memory_budget_ratio'],
-            quality_loss_tolerance=params['quality_loss_tolerance']
-        )
+        # --- IMPORTANT ---
+        # Ensure parameters not in the search space use sensible defaults from CompressionConfig
+        # For example, outlier thresholds, sink/outlier bits, value_quant_groups might be fixed
+        config.outlier_threshold_abs = 6.0 # Example fixed value
+        config.outlier_threshold_relative = 5.0 # Example fixed value
+        config.key_bits_sink_outlier = 8 # Example fixed value
+        config.value_bits_sink_outlier = 8 # Example fixed value
+        config.value_quant_groups = -1 # Example fixed value (per-channel)
+
+        # Remove obsolete parameters explicitly if they exist in the base class definition
+        obsolete_params = ['alpha', 'beta', 'gamma', 'theta_h', 'theta_m',
+                           'early_layer_ratio', 'middle_layer_ratio', 'later_layer_ratio',
+                           'high_precision_bits', 'medium_precision_bits', 'low_precision_bits',
+                           'memory_budget_ratio', 'quality_loss_tolerance']
+        for p in obsolete_params:
+            if hasattr(config, p):
+                delattr(config, p) # Or set to None/default if required by downstream code
+
+        return config
 
     def objective_function(
         self,
         config: CompressionConfig,
-        weight_quality: float = 0.6,
-        weight_efficiency: float = 0.3,
-        weight_speed: float = 0.1
+        weight_quality: float = 0.7,      # Increased weight on quality
+        weight_efficiency: float = 0.2,   # Weight on estimated memory savings
+        weight_speed: float = 0.1         # Weight on generation speed (throughput)
     ) -> float:
         """
-        Multi-objective function combining quality, memory efficiency, and speed
+        Multi-objective function combining quality, estimated memory efficiency, and speed.
+        Higher is better.
         """
+        trial_results = { # Store detailed metrics for this trial
+            'config': config.__dict__.copy(),
+            'quality_score': 0,
+            'estimated_memory_savings': 0,
+            'speed_score': 0,
+            'objective_score': 0.0, # Default to worst score
+            'evaluation_time': 0,
+            'memory_stats': {},
+            'error': None
+        }
 
         try:
-            # Create and evaluate model
+            # Create and evaluate model using the new config
+            print(f"  Creating model with config: {config.__dict__}")
             model = create_compressed_llama_model(self.model_name, config, self.device)
             model.eval()
 
-            # Create evaluator with quick evaluation
-            eval_dir = os.path.join(self.output_dir, "temp_eval")
+            # Create evaluator with quick evaluation settings
+            eval_dir = os.path.join(self.output_dir, f"temp_eval_{np.random.randint(10000)}")
             os.makedirs(eval_dir, exist_ok=True)
-
             evaluator = LongBenchEvaluator(model, self.tokenizer, config, eval_dir)
 
             # Monitor memory and time
             memory_monitor = MemoryMonitor()
             memory_monitor.start_monitoring()
+            timer_start = time.time()
 
-            import time
-            start_time = time.time()
-
-            # Quick evaluation on subset of tasks
-            results = evaluator.evaluate_all_tasks(
+            # Quick evaluation on a subset of tasks/samples
+            print("  Starting quick evaluation...")
+            eval_results = evaluator.evaluate_all_tasks(
                 tasks=['narrativeqa', 'qasper'],  # Limited tasks for speed
                 max_samples_per_task=5           # Limited samples
             )
+            print("  Evaluation finished.")
 
-            evaluation_time = time.time() - start_time
+            evaluation_time = time.time() - timer_start
             memory_stats = memory_monitor.get_peak_memory()
             memory_monitor.stop_monitoring()
 
             # Extract metrics
-            quality_score = results.get('overall_quality_score', 0)
-            compression_perf = results.get('compression_performance', {})
-            memory_savings = compression_perf.get('overall_avg_memory_savings', 0)
+            quality_score = eval_results.get('overall_quality_score', 0)
 
-            # Speed metric (inverse of evaluation time)
-            speed_score = 1.0 / (evaluation_time + 1.0)  # +1 to avoid division by zero
+            # --- Get Estimated Memory Savings ---
+            compression_stats = model.get_compression_stats() # Get stats from the model/compressor
+            estimated_memory_savings = compression_stats.get('estimated_memory_savings', 0.0)
 
-            # Combined objective (higher is better)
+            # --- Speed Metric ---
+            # Use average tokens per second from evaluation results if available
+            # This requires LongBenchEvaluator to aggregate and return it
+            # Placeholder: Use inverse of evaluation time
+            avg_tps = 0
+            if 'task_results' in eval_results:
+                 all_tps = []
+                 for task_res in eval_results['task_results'].values():
+                      if 'compression_metrics' in task_res:
+                           all_tps.append(task_res['compression_metrics'].get('avg_tokens_per_second', 0))
+                 if all_tps:
+                      avg_tps = np.mean(all_tps)
+
+            speed_score = avg_tps / 100.0 # Normalize TPS (e.g., assume 100 TPS is good)
+            # Fallback if TPS not available
+            if speed_score == 0:
+                 speed_score = 1.0 / (evaluation_time + 1.0) # Add 1 to avoid division by zero
+
+            # --- Combined Objective ---
             objective_score = (
                 weight_quality * quality_score +
-                weight_efficiency * memory_savings +
+                weight_efficiency * estimated_memory_savings +
                 weight_speed * speed_score
             )
 
-            # Store evaluation history
-            eval_record = {
-                'config': config.__dict__.copy(),
+            # Store results for history
+            trial_results.update({
                 'quality_score': quality_score,
-                'memory_savings': memory_savings,
+                'estimated_memory_savings': estimated_memory_savings,
                 'speed_score': speed_score,
                 'objective_score': objective_score,
                 'evaluation_time': evaluation_time,
-                'memory_stats': memory_stats
-            }
+                'memory_stats': memory_stats,
+                'eval_results_summary': eval_results # Store summary
+            })
+            print(f"  Trial Metrics: Quality={quality_score:.4f}, Est.Savings={estimated_memory_savings:.4f}, Speed={speed_score:.4f} -> Objective={objective_score:.4f}")
 
-            self.evaluation_history.append(eval_record)
-
-            # Clean up
-            del model
-            torch.cuda.empty_cache()
-
-            return objective_score
 
         except Exception as e:
             print(f"Error in objective function: {e}")
-            return 0.0  # Return worst score on error
+            import traceback
+            traceback.print_exc()
+            trial_results['error'] = str(e)
+            objective_score = 0.0 # Return worst score on error
+
+        finally:
+            # Clean up GPU memory
+            if 'model' in locals():
+                del model
+            torch.cuda.empty_cache()
+            # Append results regardless of success/failure
+            self.evaluation_history.append(trial_results)
+
+        return objective_score
+
+    # --- Search Methods (Largely unchanged, but use new search space/config) ---
 
     def grid_search(
         self,
-        n_points_per_dim: int = 3,
-        max_evaluations: Optional[int] = None
+        # Grid search is less practical with the new, larger parameter space.
+        # Consider removing or simplifying it significantly.
+        # Example: Tune only bits, fixing others.
+        n_points_per_dim: int = 2,
+        max_evaluations: Optional[int] = 16 # Keep low for grid search
     ) -> Dict[str, Any]:
-        """Grid search optimization"""
-
+        """Grid search optimization (Simplified for new space)"""
         print("\n" + "="*50)
-        print("GRID SEARCH HYPERPARAMETER OPTIMIZATION")
+        print("GRID SEARCH HYPERPARAMETER OPTIMIZATION (Limited Scope)")
         print("="*50)
 
-        search_space = self.define_search_space()
+        # --- Select a SUBSET of parameters for grid search ---
+        search_space_subset = {
+            'key_bits_normal': [4, 8],
+            'value_bits_normal': [4, 6],
+            'chunk_size': [256, 512],
+            'attention_sink_size': [8], # Fixed
+            'ema_decay': [0.99] # Fixed
+        }
+        print(f"Grid searching over parameters: {list(search_space_subset.keys())}")
 
-        # Create grid points for each dimension
-        grid_points = {}
-        for param_name, (low, high) in search_space.items():
-            grid_points[param_name] = np.linspace(low, high, n_points_per_dim)
+        # Create grid points
+        grid_points = search_space_subset
 
-        # Generate all combinations
+        # Generate combinations
         import itertools
-
         param_names = list(grid_points.keys())
-        param_values = list(grid_points.values())
+        param_values_list = list(grid_points.values())
+        all_combinations_tuples = list(itertools.product(*param_values_list))
+        all_combinations = [dict(zip(param_names, values)) for values in all_combinations_tuples]
 
-        all_combinations = list(itertools.product(*param_values))
 
         if max_evaluations and len(all_combinations) > max_evaluations:
-            # Randomly sample if too many combinations
             indices = np.random.choice(len(all_combinations), max_evaluations, replace=False)
             all_combinations = [all_combinations[i] for i in indices]
 
@@ -200,43 +274,46 @@ class HyperparameterTuner:
 
         best_score = -np.inf
         best_params = None
-        best_config = None
+        best_config_dict = None
 
-        for i, param_values in enumerate(all_combinations):
-            params = dict(zip(param_names, param_values))
-
+        for i, params_subset in enumerate(all_combinations):
             print(f"\nEvaluation {i+1}/{len(all_combinations)}")
-            print(f"Parameters: {params}")
+            print(f"Parameters (Subset): {params_subset}")
 
-            # Create configuration
-            config = self.create_config_from_params(params)
+            # --- Create full config using defaults for non-tuned params ---
+            full_params = { # Start with defaults or fixed values
+                'chunk_size': params_subset.get('chunk_size', 256),
+                'ema_decay': params_subset.get('ema_decay', 0.99),
+                'attention_sink_size': params_subset.get('attention_sink_size', 8),
+                'key_bits_normal': params_subset.get('key_bits_normal', 4),
+                'value_bits_normal': params_subset.get('value_bits_normal', 4),
+                # Add other fixed params as needed by create_config_from_params
+            }
+            config = self.create_config_from_params(full_params)
 
-            # Evaluate
             score = self.objective_function(config)
-
             print(f"Objective Score: {score:.4f}")
 
             if score > best_score:
                 best_score = score
-                best_params = params.copy()
-                best_config = config
-
+                best_params = full_params.copy() # Store the full params used
+                best_config_dict = config.__dict__.copy()
                 print(f"*** New best score: {best_score:.4f} ***")
 
         results = {
             'method': 'grid_search',
             'best_score': best_score,
             'best_params': best_params,
-            'best_config': best_config.__dict__.copy() if best_config else None,
+            'best_config': best_config_dict,
             'n_evaluations': len(all_combinations),
             'evaluation_history': self.evaluation_history.copy()
         }
 
-        # Save results
         with open(os.path.join(self.output_dir, "grid_search_results.json"), 'w') as f:
-            json.dump(results, f, indent=2, default=str)
+            json.dump(results, f, indent=2, default=str) # Use default=str for non-serializable
 
         return results
+
 
     def random_search(
         self,
@@ -244,7 +321,6 @@ class HyperparameterTuner:
         random_seed: int = 42
     ) -> Dict[str, Any]:
         """Random search optimization"""
-
         print("\n" + "="*50)
         print("RANDOM SEARCH HYPERPARAMETER OPTIMIZATION")
         print("="*50)
@@ -254,42 +330,45 @@ class HyperparameterTuner:
 
         best_score = -np.inf
         best_params = None
-        best_config = None
+        best_config_dict = None
 
         for i in range(n_trials):
-            # Sample random parameters
             params = {}
-            for param_name, (low, high) in search_space.items():
-                params[param_name] = np.random.uniform(low, high)
+            # Sample parameters based on defined types
+            for param_name, definition in search_space.items():
+                suggest_type = definition[0]
+                suggest_args = definition[1]
+                if suggest_type == 'suggest_float':
+                    params[param_name] = np.random.uniform(suggest_args[0], suggest_args[1])
+                elif suggest_type == 'suggest_int':
+                    params[param_name] = np.random.randint(suggest_args[0], suggest_args[1] + 1)
+                elif suggest_type == 'suggest_categorical':
+                    params[param_name] = np.random.choice(suggest_args)
+                else:
+                    raise ValueError(f"Unsupported suggestion type: {suggest_type}")
 
             print(f"\nTrial {i+1}/{n_trials}")
-            print(f"Parameters: {params}")
+            print(f"Sampled Parameters: {params}")
 
-            # Create configuration
             config = self.create_config_from_params(params)
-
-            # Evaluate
             score = self.objective_function(config)
-
             print(f"Objective Score: {score:.4f}")
 
             if score > best_score:
                 best_score = score
                 best_params = params.copy()
-                best_config = config
-
+                best_config_dict = config.__dict__.copy()
                 print(f"*** New best score: {best_score:.4f} ***")
 
         results = {
             'method': 'random_search',
             'best_score': best_score,
             'best_params': best_params,
-            'best_config': best_config.__dict__.copy() if best_config else None,
+            'best_config': best_config_dict,
             'n_trials': n_trials,
             'evaluation_history': self.evaluation_history.copy()
         }
 
-        # Save results
         with open(os.path.join(self.output_dir, "random_search_results.json"), 'w') as f:
             json.dump(results, f, indent=2, default=str)
 
@@ -298,42 +377,53 @@ class HyperparameterTuner:
     def bayesian_optimization(
         self,
         n_trials: int = 30,
-        n_initial_points: int = 5
+        # n_initial_points: int = 5 # Optuna handles startup strategy
     ) -> Dict[str, Any]:
         """Bayesian optimization using Optuna"""
-
         print("\n" + "="*50)
-        print("BAYESIAN OPTIMIZATION HYPERPARAMETER TUNING")
+        print("BAYESIAN OPTIMIZATION HYPERPARAMETER TUNING (Optuna)")
         print("="*50)
 
         search_space = self.define_search_space()
 
-        def optuna_objective(trial):
-            # Sample parameters
+        def optuna_objective_wrapper(trial):
+            # Sample parameters using Optuna's trial object
             params = {}
-            for param_name, (low, high) in search_space.items():
-                params[param_name] = trial.suggest_float(param_name, low, high)
+            for param_name, definition in search_space.items():
+                suggest_type = definition[0]
+                suggest_args = definition[1]
+                if suggest_type == 'suggest_float':
+                    params[param_name] = trial.suggest_float(param_name, suggest_args[0], suggest_args[1])
+                elif suggest_type == 'suggest_int':
+                    params[param_name] = trial.suggest_int(param_name, suggest_args[0], suggest_args[1])
+                elif suggest_type == 'suggest_categorical':
+                    params[param_name] = trial.suggest_categorical(param_name, suggest_args)
+                else:
+                    raise ValueError(f"Unsupported suggestion type: {suggest_type}")
 
-            print(f"\nTrial {trial.number + 1}")
-            print(f"Parameters: {params}")
+            print(f"\nTrial {trial.number + 1}/{n_trials}")
+            print(f"Optuna Sampled Parameters: {params}")
 
-            # Create configuration and evaluate
+            # Create configuration and evaluate using the main objective function
             config = self.create_config_from_params(params)
-            score = self.objective_function(config)
+            score = self.objective_function(config) # Calls the main objective func
 
             print(f"Objective Score: {score:.4f}")
-
-            return score
+            return score # Optuna maximizes this score
 
         # Create Optuna study
         study = optuna.create_study(direction='maximize')
+        best_config_dict = None # Initialize
 
         try:
-            study.optimize(optuna_objective, n_trials=n_trials)
+            study.optimize(optuna_objective_wrapper, n_trials=n_trials)
 
             best_params = study.best_params
             best_score = study.best_value
+            # Recreate the best config based on best_params
             best_config = self.create_config_from_params(best_params)
+            best_config_dict = best_config.__dict__.copy()
+
 
             print(f"\n*** Optimization completed ***")
             print(f"Best score: {best_score:.4f}")
@@ -343,10 +433,10 @@ class HyperparameterTuner:
                 'method': 'bayesian_optimization',
                 'best_score': best_score,
                 'best_params': best_params,
-                'best_config': best_config.__dict__.copy(),
+                'best_config': best_config_dict,
                 'n_trials': n_trials,
                 'optuna_study': {
-                    'best_trial': study.best_trial.number,
+                    'best_trial_number': study.best_trial.number,
                     'best_value': study.best_value,
                     'best_params': study.best_params
                 },
@@ -355,47 +445,57 @@ class HyperparameterTuner:
 
         except Exception as e:
             print(f"Bayesian optimization failed: {e}")
-
+            import traceback
+            traceback.print_exc()
             results = {
                 'method': 'bayesian_optimization',
                 'error': str(e),
-                'evaluation_history': self.evaluation_history.copy()
+                'n_trials': n_trials,
+                'evaluation_history': self.evaluation_history.copy() # Still save history
             }
 
         # Save results
         with open(os.path.join(self.output_dir, "bayesian_optimization_results.json"), 'w') as f:
+            # Handle non-serializable Optuna objects if any (study object itself isn't saved)
             json.dump(results, f, indent=2, default=str)
 
         return results
 
     def evolutionary_search(
         self,
-        population_size: int = 20,
-        n_generations: int = 10,
-        mutation_rate: float = 0.1,
+        population_size: int = 10, # Smaller population might be needed
+        n_generations: int = 5,   # Fewer generations for quicker runs
+        mutation_rate: float = 0.2, # Higher mutation might explore better
         crossover_rate: float = 0.7
     ) -> Dict[str, Any]:
-        """Evolutionary/Genetic Algorithm optimization"""
-
+        """Evolutionary/Genetic Algorithm optimization (Simplified)"""
         print("\n" + "="*50)
         print("EVOLUTIONARY HYPERPARAMETER OPTIMIZATION")
         print("="*50)
 
         search_space = self.define_search_space()
         param_names = list(search_space.keys())
-        param_bounds = list(search_space.values())
+
+        # Function to generate a random individual respecting bounds/categories
+        def generate_individual():
+            individual = {}
+            for param_name, definition in search_space.items():
+                suggest_type = definition[0]
+                suggest_args = definition[1]
+                if suggest_type == 'suggest_float':
+                    individual[param_name] = np.random.uniform(suggest_args[0], suggest_args[1])
+                elif suggest_type == 'suggest_int':
+                    individual[param_name] = np.random.randint(suggest_args[0], suggest_args[1] + 1)
+                elif suggest_type == 'suggest_categorical':
+                    individual[param_name] = np.random.choice(suggest_args)
+            return individual
 
         # Initialize population
-        population = []
-        for _ in range(population_size):
-            individual = []
-            for low, high in param_bounds:
-                individual.append(np.random.uniform(low, high))
-            population.append(individual)
+        population = [generate_individual() for _ in range(population_size)]
 
-        best_score = -np.inf
-        best_individual = None
-        best_config = None
+        best_score_overall = -np.inf
+        best_individual_overall = None
+        best_config_dict = None
 
         for generation in range(n_generations):
             print(f"\nGeneration {generation + 1}/{n_generations}")
@@ -403,74 +503,105 @@ class HyperparameterTuner:
             # Evaluate population
             fitness_scores = []
             for i, individual in enumerate(population):
-                params = dict(zip(param_names, individual))
-                config = self.create_config_from_params(params)
+                print(f"  Evaluating individual {i+1}/{population_size}: {individual}")
+                config = self.create_config_from_params(individual)
                 score = self.objective_function(config)
                 fitness_scores.append(score)
+                print(f"  Score: {score:.4f}")
 
-                if score > best_score:
-                    best_score = score
-                    best_individual = individual.copy()
-                    best_config = config
-                    print(f"  New best score: {best_score:.4f}")
+                if score > best_score_overall:
+                    best_score_overall = score
+                    best_individual_overall = individual.copy()
+                    best_config_dict = config.__dict__.copy()
+                    print(f"    *** New best overall score: {best_score_overall:.4f} ***")
 
-            print(f"  Generation best: {max(fitness_scores):.4f}")
-            print(f"  Generation avg: {np.mean(fitness_scores):.4f}")
+            # --- Simple Genetic Operations ---
+            if not fitness_scores: # Handle empty fitness scores
+                print("Warning: No fitness scores calculated for this generation.")
+                break # Stop if evaluation fails repeatedly
 
-            # Selection (tournament selection)
+            fitness_scores_np = np.array(fitness_scores)
+            avg_fitness = np.mean(fitness_scores_np) if fitness_scores_np.size > 0 else 0
+            best_gen_fitness = np.max(fitness_scores_np) if fitness_scores_np.size > 0 else -np.inf
+
+            print(f"  Generation best score: {best_gen_fitness:.4f}")
+            print(f"  Generation average score: {avg_fitness:.4f}")
+
+
+            # Selection (Tournament selection)
             new_population = []
             for _ in range(population_size):
-                # Tournament selection
                 tournament_size = 3
-                tournament_indices = np.random.choice(population_size, tournament_size, replace=False)
-                tournament_scores = [fitness_scores[i] for i in tournament_indices]
-                winner_idx = tournament_indices[np.argmax(tournament_scores)]
+                if population_size < tournament_size: # Handle small population
+                    tournament_size = population_size
+                if tournament_size <= 0: continue # Skip if population depleted
+
+                contender_indices = np.random.choice(len(population), tournament_size, replace=False)
+                winner_idx = contender_indices[np.argmax(fitness_scores_np[contender_indices])]
                 new_population.append(population[winner_idx].copy())
 
-            # Crossover and mutation
-            for i in range(0, population_size - 1, 2):
-                if np.random.random() < crossover_rate:
-                    # Single-point crossover
-                    crossover_point = np.random.randint(1, len(param_names))
-                    child1 = new_population[i][:crossover_point] + new_population[i+1][crossover_point:]
-                    child2 = new_population[i+1][:crossover_point] + new_population[i][crossover_point:]
-                    new_population[i] = child1
-                    new_population[i+1] = child2
+            population = new_population # Parents for next gen based on selection
 
-                # Mutation
-                for individual in [new_population[i], new_population[i+1]]:
-                    for j in range(len(individual)):
-                        if np.random.random() < mutation_rate:
-                            low, high = param_bounds[j]
-                            individual[j] = np.random.uniform(low, high)
+            # Crossover (Simplified: swap parameters) & Mutation
+            offspring_population = []
+            for i in range(0, population_size, 2):
+                 parent1 = population[i]
+                 # Ensure there is a second parent
+                 parent2 = population[i+1] if i + 1 < population_size else population[np.random.randint(population_size)] # Use random if odd pop size
 
-            population = new_population
+                 child1, child2 = parent1.copy(), parent2.copy()
 
-        best_params = dict(zip(param_names, best_individual)) if best_individual else None
+                 if np.random.rand() < crossover_rate:
+                     # One-point crossover on parameter dictionary keys
+                     keys_to_swap = np.random.choice(param_names, size=len(param_names)//2, replace=False)
+                     for key in keys_to_swap:
+                         child1[key], child2[key] = child2[key], child1[key]
+
+                 # Mutation
+                 for child in [child1, child2]:
+                     for param_name in param_names:
+                          if np.random.rand() < mutation_rate:
+                              # Re-sample the single parameter
+                              definition = search_space[param_name]
+                              suggest_type = definition[0]
+                              suggest_args = definition[1]
+                              if suggest_type == 'suggest_float':
+                                  child[param_name] = np.random.uniform(suggest_args[0], suggest_args[1])
+                              elif suggest_type == 'suggest_int':
+                                  child[param_name] = np.random.randint(suggest_args[0], suggest_args[1] + 1)
+                              elif suggest_type == 'suggest_categorical':
+                                  child[param_name] = np.random.choice(suggest_args)
+                     offspring_population.append(child)
+
+            # Ensure population size is maintained
+            population = offspring_population[:population_size]
+            # If population shrunk due to odd number, add random individuals
+            while len(population) < population_size:
+                 population.append(generate_individual())
+
 
         results = {
             'method': 'evolutionary_search',
-            'best_score': best_score,
-            'best_params': best_params,
-            'best_config': best_config.__dict__.copy() if best_config else None,
+            'best_score': best_score_overall,
+            'best_params': best_individual_overall,
+            'best_config': best_config_dict,
             'population_size': population_size,
             'n_generations': n_generations,
             'evaluation_history': self.evaluation_history.copy()
         }
 
-        # Save results
         with open(os.path.join(self.output_dir, "evolutionary_search_results.json"), 'w') as f:
             json.dump(results, f, indent=2, default=str)
 
         return results
 
+    # --- Comparison Method (Unchanged structure, calls updated methods) ---
     def compare_methods(
         self,
         methods: List[str] = ['random_search', 'bayesian_optimization'],
         n_trials_per_method: int = 20
     ) -> Dict[str, Any]:
         """Compare different optimization methods"""
-
         print("\n" + "="*60)
         print("HYPERPARAMETER OPTIMIZATION METHOD COMPARISON")
         print("="*60)
@@ -479,20 +610,21 @@ class HyperparameterTuner:
 
         for method in methods:
             print(f"\nRunning {method}...")
-            self.evaluation_history = []  # Reset history for each method
+            self.evaluation_history = [] # Reset history for each method's run
 
             try:
                 if method == 'grid_search':
-                    results = self.grid_search(n_points_per_dim=3, max_evaluations=n_trials_per_method)
+                    # Grid search might be too slow/limited, use small settings
+                    results = self.grid_search(n_points_per_dim=2, max_evaluations=min(n_trials_per_method, 16))
                 elif method == 'random_search':
                     results = self.random_search(n_trials=n_trials_per_method)
                 elif method == 'bayesian_optimization':
                     results = self.bayesian_optimization(n_trials=n_trials_per_method)
                 elif method == 'evolutionary_search':
-                    results = self.evolutionary_search(
-                        population_size=min(10, n_trials_per_method // 2),
-                        n_generations=max(2, n_trials_per_method // 10)
-                    )
+                    # Adjust population/generations based on total trials
+                    pop = max(5, n_trials_per_method // 4)
+                    gen = max(2, n_trials_per_method // pop)
+                    results = self.evolutionary_search(population_size=pop, n_generations=gen)
                 else:
                     print(f"Unknown method: {method}")
                     continue
@@ -512,9 +644,9 @@ class HyperparameterTuner:
 
         return comparison_results
 
+    # --- Analysis Method (Unchanged structure) ---
     def analyze_method_comparison(self, comparison_results: Dict[str, Any]):
         """Analyze and summarize method comparison results"""
-
         print("\n" + "="*50)
         print("METHOD COMPARISON ANALYSIS")
         print("="*50)
@@ -527,81 +659,115 @@ class HyperparameterTuner:
                 continue
 
             best_score = results.get('best_score', 0)
-            n_evaluations = results.get('n_trials', results.get('n_evaluations', 0))
+            # Get correct count based on method
+            if 'n_evaluations' in results: # Grid search
+                n_evaluations = results['n_evaluations']
+            elif 'n_trials' in results: # Random/Bayesian
+                 n_evaluations = results['n_trials']
+            elif 'population_size' in results: # Evolutionary
+                 n_evaluations = results['population_size'] * results['n_generations']
+            else:
+                 n_evaluations = len(results.get('evaluation_history', []))
+
 
             print(f"\n{method.upper()}:")
-            print(f"  Best Score: {best_score:.4f}")
-            print(f"  Evaluations: {n_evaluations}")
-            print(f"  Efficiency: {best_score/n_evaluations:.6f} (score per evaluation)")
+            print(f"  Best Objective Score: {best_score:.4f}")
+            print(f"  Number of Evaluations: {n_evaluations}")
 
             if 'best_params' in results and results['best_params']:
-                print(f"  Best Parameters:")
+                print(f"  Best Parameters Found:")
                 for param, value in results['best_params'].items():
-                    print(f"    {param}: {value:.4f}")
+                     if isinstance(value, float):
+                         print(f"    {param}: {value:.4f}")
+                     else:
+                          print(f"    {param}: {value}")
+            else:
+                print("  Best parameters not available.")
+
+
+            efficiency = best_score / n_evaluations if n_evaluations > 0 else 0
+            print(f"  Efficiency (Score per Eval): {efficiency:.6f}")
+
 
             summary_data.append({
                 'method': method,
                 'best_score': best_score,
                 'n_evaluations': n_evaluations,
-                'efficiency': best_score / n_evaluations if n_evaluations > 0 else 0
+                'efficiency': efficiency
             })
 
-        # Find best method
+        # Find best method based on score
         if summary_data:
-            best_method = max(summary_data, key=lambda x: x['best_score'])
-            most_efficient = max(summary_data, key=lambda x: x['efficiency'])
+            best_method_by_score = max(summary_data, key=lambda x: x['best_score'])
+            most_efficient_method = max(summary_data, key=lambda x: x['efficiency'])
 
-            print(f"\n*** SUMMARY ***")
-            print(f"Best Score: {best_method['method']} ({best_method['best_score']:.4f})")
-            print(f"Most Efficient: {most_efficient['method']} ({most_efficient['efficiency']:.6f})")
+            print(f"\n*** OVERALL SUMMARY ***")
+            print(f"Method with Best Score: {best_method_by_score['method']} ({best_method_by_score['best_score']:.4f})")
+            print(f"Most Efficient Method (Score/Eval): {most_efficient_method['method']} ({most_efficient_method['efficiency']:.6f})")
 
-        # Save summary
-        summary_df = pd.DataFrame(summary_data)
-        summary_df.to_csv(os.path.join(self.output_dir, "method_comparison_summary.csv"), index=False)
+            # Save summary table
+            try:
+                summary_df = pd.DataFrame(summary_data)
+                summary_df.to_csv(os.path.join(self.output_dir, "method_comparison_summary.csv"), index=False)
+                print(f"Comparison summary saved to {os.path.join(self.output_dir, 'method_comparison_summary.csv')}")
+            except Exception as e:
+                print(f"Could not save summary CSV: {e}")
+
 
 def main():
     """Main function for hyperparameter tuning"""
-
     import argparse
 
-    parser = argparse.ArgumentParser(description="Hyperparameter tuning for KV cache compression")
+    parser = argparse.ArgumentParser(description="Hyperparameter tuning for Streaming KVQuant Compression")
     parser.add_argument("--model_name", type=str, default="meta-llama/Llama-2-7b-hf")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--output_dir", type=str, default="./tuning_results")
     parser.add_argument("--method", type=str, choices=[
         'grid_search', 'random_search', 'bayesian_optimization',
         'evolutionary_search', 'compare_all'
-    ], default='random_search')
-    parser.add_argument("--n_trials", type=int, default=20)
+    ], default='bayesian_optimization') # Default to Bayesian
+    parser.add_argument("--n_trials", type=int, default=25) # Default number of trials/evaluations
 
     args = parser.parse_args()
 
-    # Create tuner
+    # Create tuner instance
     tuner = HyperparameterTuner(
         model_name=args.model_name,
         device=args.device,
         output_dir=args.output_dir
     )
 
-    # Run optimization
+    # Run the selected optimization method
+    print(f"Starting tuning with method: {args.method}, Number of trials/evaluations: {args.n_trials}")
+
     if args.method == 'grid_search':
-        results = tuner.grid_search(n_points_per_dim=3, max_evaluations=args.n_trials)
+        # Note: Grid search is limited in scope in the updated code
+        results = tuner.grid_search(max_evaluations=args.n_trials)
     elif args.method == 'random_search':
         results = tuner.random_search(n_trials=args.n_trials)
     elif args.method == 'bayesian_optimization':
         results = tuner.bayesian_optimization(n_trials=args.n_trials)
     elif args.method == 'evolutionary_search':
-        results = tuner.evolutionary_search(
-            population_size=min(20, args.n_trials),
-            n_generations=max(5, args.n_trials // 4)
-        )
+        # Adjust population/generations based on n_trials
+        pop = max(5, args.n_trials // 5)
+        gen = max(3, args.n_trials // pop)
+        results = tuner.evolutionary_search(population_size=pop, n_generations=gen)
     elif args.method == 'compare_all':
+        # Compare fewer methods by default or make it configurable
         results = tuner.compare_methods(
-            methods=['random_search', 'bayesian_optimization'],
+            methods=['random_search', 'bayesian_optimization'], # Example subset
             n_trials_per_method=args.n_trials
         )
 
-    print(f"\nHyperparameter tuning completed! Results saved to: {args.output_dir}")
+    print(f"\nHyperparameter tuning ({args.method}) completed!")
+    print(f"Results saved to: {args.output_dir}")
+
+    # Optionally print the best result found
+    if 'best_score' in results:
+         print(f"Best objective score found: {results['best_score']:.4f}")
+         if 'best_params' in results:
+              print("Best parameters:")
+              print(json.dumps(results['best_params'], indent=2))
 
 if __name__ == "__main__":
     main()

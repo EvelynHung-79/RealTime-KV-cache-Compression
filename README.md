@@ -1,49 +1,46 @@
-# Real-time Prefill KV Cache Compression
+# Real-time Prefill KV Cache Compression (Streaming KVQuant Adaptation)
 
-A PyTorch implementation of real-time KV cache compression for LLaMA2 models during the prefill stage, combining techniques from KVQuant, FastKV, and Finch.
+A PyTorch implementation adapting KVQuant principles for real-time KV cache quantization during the prefill stage of LLaMA2 models, focusing on streaming processing and Sink/Outlier awareness.
 
 ## Overview
 
-This project implements a novel approach for **real-time compression** of KV cache during the prefill stage of transformer inference. Unlike traditional methods that compress after complete KV cache generation, our approach compresses tokens as they pass through each layer.
+This project implements a real-time quantization approach for the Key-Value (KV) cache during the prefill stage of transformer inference. Unlike traditional offline methods, this approach processes the input sequence in chunks, dynamically calculating quantization parameters based on streaming statistics without prior calibration. It aims to reduce the memory footprint of the KV cache by storing quantized values while retaining all tokens to maintain model quality.
 
 ### Key Features
 
-- **Layer-wise Real-time Compression**: Compression happens at each transformer layer
-- **Prompt-guided Token Importance Scoring**: Uses attention to prompt tokens for importance evaluation  
-- **Dynamic Precision Assignment**: Assigns different quantization bits (2-8 bit) based on importance
-- **Selective Token Propagation**: Only propagates important tokens to subsequent layers
-- **Long Context Support**: Enables processing of long sequences with limited GPU memory
+-   **Real-time Streaming Quantization**: Quantization occurs chunk-by-chunk during the prefill pass.
+-   **KVQuant Inspired**: Leverages KVQuant's core ideas like Per-channel Key quantization (Pre-RoPE) and differentiated Value quantization.
+-   **Online Statistics**: Uses Exponential Moving Average (EMA) of Absmax to dynamically determine quantization scales, eliminating the need for offline calibration.
+-   **Sink & Outlier Awareness**: Applies higher precision quantization to initial "Attention Sink" tokens and dynamically detected outlier channels/groups to preserve critical information.
+-   **No Token Dropping**: All tokens are processed and retained throughout the layers; compression is achieved solely through quantization.
+-   **Chunked Processing**: Handles long sequences by processing them in fixed-size chunks to manage computational overhead.
 
 ### Method Overview
 
-Our method combines three core components:
+The method integrates the following components within each transformer layer during prefill:
 
-1. **Token Importance Scoring**: 
-   ```
-   s_i^(l) = α·Â_P,i^(l)·w_l + β·b_pos(i) + γ·r(i)
-   ```
-   - Prompt attention term with layer-specific weights
-   - Position bias compensation 
-   - Context relevance adjustment
-
-2. **Dynamic Precision Assignment**:
-   - High importance (>0.7): 8-bit quantization
-   - Medium importance (0.3-0.7): 4-bit quantization  
-   - Low importance (<0.3): 2-bit quantization or drop
-
-3. **Selective Propagation**:
-   - Early layers: 80% token retention
-   - Middle layers: 60% token retention
-   - Later layers: 40% token retention
+1.  **Streaming Statistics Manager**:
+    * Maintains running EMA Absmax statistics for Key channels (per-channel) and Value channels/groups across processed chunks.
+    * Detects outlier channels/groups based on configurable absolute or relative thresholds using these statistics.
+2.  **Real-time Quantizer**:
+    * Performs symmetric quantization (e.g., INT8, INT4) based on scales derived from the Streaming Statistics Manager.
+    * Applies specific quantization logic:
+        * **Keys**: Pre-RoPE, Per-channel quantization. Uses higher precision for Sink tokens and detected Outlier channels.
+        * **Values**: Post-RoPE, Group-wise or Simplified Per-channel quantization. Uses higher precision for Sink tokens and detected Outlier groups/channels.
+3.  **Modified Attention Module**:
+    * Processes input `hidden_states` in chunks (`chunk_size`).
+    * Coordinates the calculation of K/V, updates streaming statistics, performs quantization using the Real-time Quantizer, applies RoPE (to high-precision or temporarily dequantized values), and calculates attention using high-precision values.
+    * Appends the **quantized** Key and Value chunks to the KV Cache for storage.
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.9+
-- PyTorch 2.0+
-- CUDA 11.8+ (for GPU acceleration)
-- At least 16GB RAM, 8GB+ GPU memory recommended
+-   Python 3.9+
+-   PyTorch 2.0+
+-   CUDA 11.8+ (for GPU acceleration)
+-   Dependencies listed in `requirements.txt`
+-   At least 16GB RAM, 8GB+ GPU memory recommended
 
 ### Quick Setup
 
@@ -52,150 +49,122 @@ Our method combines three core components:
 git clone <repository-url>
 cd RealTime-KV-cache-Compression
 
-# Setup environment
+# Setup environment (creates venv, installs dependencies)
 chmod +x scripts/setup_environment.sh
-source ./scripts/setup_environment.sh
+./scripts/setup_environment.sh # Source is usually not needed here
 
 # Activate environment
 source venv/bin/activate
-```
 
 ## Usage
 
 ### Download Model
-download LLaMA2-7B
+
+Download the desired LLaMA model (e.g., LLaMA2-7B) using the provided script:
+
 ```bash
 python scripts/download_model.py
 ```
 
+*(Ensure you have the necessary permissions and Hugging Face Hub login configured if required)*
+
 ### Basic Tests
-Testing on compression/importance_score/quantization modules
+
+Run unit tests to verify core components:
+
 ```bash
-# Compression Test
-pytest tests/test_compression.py -v
-PYTHONPATH=$(pwd) pytest tests/test_compression.py -v #設定環境變數
+# Set PYTHONPATH for imports
+export PYTHONPATH=$(pwd)
 
-# Importance Score Calculation Test
-pytest tests/test_importance_scoring.py -v
-PYTHONPATH=$(pwd) pytest tests/test_importance_scoring.py -v #設定環境變數
-
-# Quantization Test
+# Test new quantization components
 pytest tests/test_quantization.py -v
-PYTHONPATH=$(pwd) pytest tests/test_quantization.py -v #設定環境變數
 
-# Functionality Test (FULL)
+# Test overall compression logic (needs update for new structure)
+pytest tests/test_compression.py -v
+
+# Run end-to-end functionality test
 python tests/test_functionality.py
 ```
 
-#### Ablation Studies
+### Running Experiments
 
-**Component Ablation (disable individual components)**
+Use the main experiment script to run evaluations with the streaming quantization:
+
 ```bash
-python experiments/ablation_study.py \
-    --model_name "meta-llama/Llama-2-7b-hf" \
-    --study_type "component" \
-    --output_dir "./ablation_results"
+python experiments/run_compression_experiment.py \
+    --model_name "models/llama2-7b" \
+    --device cuda \
+    --max_length 4096 \
+    --chunk_size 256 \
+    --key_bits_normal 4 \
+    --value_bits_normal 4 \
+    --attention_sink_size 8 \
+    --ema_decay 0.99 \
+    --tasks narrativeqa qasper \
+    --max_samples 10 \
+    --output_dir "./experiments/results" \
+    --experiment_name "streaming_quant_test" \
+    --baseline # Optionally run baseline comparison
 ```
 
-**Hyperparameter Ablation Studies**
+*(Adjust parameters in `configs/base_config.py` or via command line)*
+
+#### Ablation Studies & Hyperparameter Tuning
+
+The scripts `experiments/ablation_study.py` and `experiments/hyperparameter_tuning.py` need to be **updated** to reflect the new set of configurable parameters (e.g., `chunk_size`, `ema_decay`, `outlier_thresholds`, `attention_sink_size`, quantization bits).
+
+Example conceptual tuning command (script needs modification):
+
 ```bash
-# Importance weights ablation (α, β, γ)
-python experiments/ablation_study.py \
-    --study_type "importance_weights"
-
-# Precision thresholds ablation (θ_h, θ_m)
-python experiments/ablation_study.py \
-    --study_type "precision_thresholds"
-
-# Propagation ratios ablation
-python experiments/ablation_study.py \
-    --study_type "propagation_ratios"
-
-# Quantization bits ablation
-python experiments/ablation_study.py \
-    --study_type "quantization_bits"
-
-# Comprehensive ablation study (all components)
-python experiments/ablation_study.py \
-    --study_type "comprehensive"
-```
-
-#### Hyperparameter Tuning
-
-**Random Search**
-```bash
-python experiments/hyperparameter_tuning.py \
-    --method random_search \
-    --n_trials 20
-```
-
-**Bayesian Optimization**
-```bash
+# Hypothetical command after updating hyperparameter_tuning.py
 python experiments/hyperparameter_tuning.py \
     --method bayesian_optimization \
-    --n_trials 20
-```
-
-**Evolutionary Search**
-```bash
-python experiments/hyperparameter_tuning.py \
-    --method evolutionary_search \
-    --n_trials 30
-```
-
-**Compare All Methods**
-```bash
-python experiments/hyperparameter_tuning.py \
-    --method compare_all \
-    --n_trials 20
+    --n_trials 30 \
+    --search_space chunk_size ema_decay key_bits_normal value_bits_normal \
+    --output_dir "./tuning_results"
 ```
 
 ## Configuration
 
-### Core Hyperparameters
+Core hyperparameters are defined in `configs/base_config.py` (`CompressionConfig`). Key parameters for the Streaming KVQuant method include:
 
-| Parameter | Description | Default | Range |
-|-----------|-------------|---------|-------|
-| `alpha` | Prompt attention weight | 0.4 | [0.2, 0.6] |
-| `beta` | Position bias weight | 0.3 | [0.1, 0.5] |
-| `gamma` | Context relevance weight | 0.3 | [0.1, 0.5] |
-| `theta_h` | High precision threshold | 0.7 | [0.6, 0.8] |
-| `theta_m` | Medium precision threshold | 0.3 | [0.2, 0.4] |
-
-### Layer Propagation Ratios
-
-- **Early layers** (first 30%): `early_layer_ratio = 0.8`
-- **Middle layers** (30-70%): `middle_layer_ratio = 0.6` 
-- **Later layers** (last 30%): `later_layer_ratio = 0.4`
+| Parameter                 | Description                                                                 | Default |
+| :------------------------ | :-------------------------------------------------------------------------- | :------ |
+| `chunk_size`              | Size of token chunks processed during prefill                               | 256     |
+| `ema_decay`               | Decay factor for EMA Absmax statistics                                      | 0.99    |
+| `outlier_threshold_abs`   | Absolute value threshold for marking a channel/group as outlier (optional)  | 6.0     |
+| `outlier_threshold_relative`| Relative threshold (vs EMA Absmax) for marking as outlier (optional)        | 5.0     |
+| `attention_sink_size`     | Number of initial tokens treated as Attention Sink (higher precision)       | 8       |
+| `key_bits_normal`         | Bits for regular Key channel quantization                                   | 4       |
+| `key_bits_sink_outlier`   | Bits for Key channel quantization (Sink tokens or Outliers)                 | 8       |
+| `value_bits_normal`       | Bits for regular Value group/channel quantization                           | 4       |
+| `value_bits_sink_outlier` | Bits for Value group/channel quantization (Sink tokens or Outliers)         | 8       |
+| `value_quant_groups`      | Value quantization grouping (-1: per-channel, 1: per-tensor, \>1: group-wise)| -1      |
 
 ## Evaluation
 
-### LongBench Tasks
+### Benchmarks
 
-The implementation supports evaluation on 13 LongBench tasks:
+The implementation supports evaluation on various benchmarks, primarily focused on long-context tasks:
 
-**Single-Document QA**: narrativeqa, qasper, multifieldqa_en, multifieldqa_zh
-
-**Multi-Document QA**: hotpotqa, 2wikimqa, musique
-
-**Summarization**: gov_report, qmsum, multi_news, vcsum
-
-**Few-shot Learning**: trec, triviaqa
+  - **LongBench**: Includes tasks like NarrativeQA, Qasper, MultiFieldQA, HotpotQA, GovReport, MultiNews etc.
+  - **Wikitext2**: Standard language modeling perplexity benchmark.
+  - **Needle-in-a-Haystack**: Tests information retrieval capability within long contexts.
 
 ### Metrics
 
 **Quality Metrics**:
-- F1 Score (QA tasks)
-- ROUGE-L (Summarization)
-- Exact Match Accuracy
-- Task-specific scores
 
-**Performance Metrics**:
-- Time-To-First-Token (TTFT)
-- Tokens per second
-- Memory usage (peak & average)
-- Compression ratio
-- Memory savings percentage
+  - Task-specific scores (F1, ROUGE-L, Exact Match Accuracy etc.)
+  - Perplexity (for language modeling tasks)
+
+**Performance & Compression Metrics**:
+
+  - Time-To-First-Token (TTFT) - approximated by prefill processing time.
+  - Generation Tokens per second.
+  - Peak & Average Memory usage (GPU/CPU).
+  - **Estimated Memory Savings**: Calculated based on the average number of bits used for quantization compared to the baseline (e.g., FP16).
+  - Statistics on Outlier detection rates and Sink token handling.
 
 ## Repository Structure
 
@@ -203,93 +172,88 @@ The implementation supports evaluation on 13 LongBench tasks:
 real-time-prefill-kv-cache-compression/
 ├── src/
 │   ├── compression/           # Core compression modules
-│   │   ├── token_importance.py      # Importance scoring
-│   │   ├── dynamic_quantization.py  # Precision assignment
-│   │   ├── selective_propagation.py # Token selection
-│   │   └── unified_compressor.py    # Main compressor
+│   │   ├── streaming_quantization.py # NEW: Streaming stats & quantization logic
+│   │   └── unified_compressor.py    # Manages stats, reset logic
 │   ├── models/               # Modified model architectures
-│   │   ├── modified_llama.py       # Compressed LLaMA
-│   │   └── compression_layers.py   # Custom layers
+│   │   ├── modified_llama.py       # LLaMA with modified Attention for streaming
+│   │   └── compression_layers.py   # Custom layers (if any needed beyond Attention)
 │   ├── evaluation/           # Evaluation utilities
 │   │   ├── longbench_eval.py       # LongBench evaluator
-│   │   └── metrics.py              # Metrics calculation
-│   └── utils/               # Utility functions
-├── configs/                 # Configuration files
-├── experiments/            # Experiment scripts
-│   ├── run_compression_experiment.py  # Main experiments
-│   ├── ablation_study.py             # Ablation studies
-│   └── hyperparameter_tuning.py     # Hyperparameter optimization
-├── scripts/               # Shell scripts
-└── tests/                 # Unit tests
+│   │   ├── metrics.py              # Metrics calculation (Needs update)
+│   │   └── benchmark_runner.py     # Benchmark suite (Needs update)
+│   └── utils/               # Utility functions (memory, eval, data)
+├── configs/                 # Configuration files (base_config updated)
+├── experiments/            # Experiment scripts (Needs update for new params)
+│   ├── run_compression_experiment.py
+│   ├── ablation_study.py
+│   └── hyperparameter_tuning.py
+├── scripts/               # Shell scripts (setup, download)
+└── tests/                 # Unit tests (Needs update/rewrite)
+    ├── test_quantization.py # NEW/REWRITE: Test streaming_quantization.py
+    └── test_compression.py  # REWRITE: Test integration in attention
+    └── test_functionality.py# Update config/checks
 ```
 
 ## Results
 
 ### Expected Performance
 
-Based on our methodology, you can expect:
+This streaming quantization method aims for:
 
-- **Memory Savings**: 60-80% reduction in KV cache memory
-- **Quality Retention**: >95% of baseline performance on most tasks
-- **Latency**: Comparable or better than baseline (due to reduced computation)
-- **Long Context**: Support for 32K+ tokens on 8GB GPU
+  - **Memory Savings**: Significant reduction in KV cache memory footprint (e.g., aiming for 2x-4x reduction depending on target bits) compared to FP16 baseline.
+  - **Quality Retention**: High retention of model performance on downstream tasks due to Sink/Outlier handling and retaining all tokens.
+  - **Latency**: Prefill latency potentially higher than baseline due to chunking and quantization overhead, but lower than methods requiring complex per-token scoring. Decode latency should be minimally impacted.
+  - **Long Context**: Enables processing of longer sequences than possible with uncompressed FP16 KV cache within the same memory constraints.
 
-### Sample Results
-
-```
-Memory Savings: 72.3%
-Compression Ratio: 0.277
-Quality Score: 0.94 (relative to baseline)
-TTFT Speedup: 1.8x
-Tokens/sec: 45.2 (vs 38.1 baseline)
-```
+*(Actual results depend heavily on hyperparameter tuning and specific task evaluation.)*
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **CUDA Out of Memory**
-   - Reduce `max_length` or increase compression ratios
-   - Use smaller batch size
-   - Enable gradient checkpointing
-
-2. **Slow Performance on CPU**
-   - Compression is optimized for GPU
-   - Consider using smaller models for CPU testing
-
-3. **Quality Degradation**
-   - Increase `theta_h` and `theta_m` thresholds
-   - Adjust `alpha` to give more weight to prompt attention
-   - Use more conservative propagation ratios
+1.  **CUDA Out of Memory**:
+      * Reduce `chunk_size`.
+      * Use lower precision bits (`key_bits_normal`, `value_bits_normal`).
+      * Reduce batch size (if applicable during prefill testing).
+2.  **Slow Performance**:
+      * Ensure CUDA kernels are utilized (PyTorch operations).
+      * Profile the quantization and statistics update steps. `ema_decay` close to 1 is cheaper but adapts slower.
+      * Increase `chunk_size` (trades memory for potentially fewer overhead calls).
+3.  **Quality Degradation**:
+      * Increase `attention_sink_size`.
+      * Use higher precision bits (`*_bits_normal`, `*_bits_sink_outlier`).
+      * Adjust `ema_decay` (faster adaptation might be needed for volatile activations).
+      * Tune `outlier_threshold_*` parameters (making them stricter increases precision usage).
 
 ### Debug Mode
 
 ```bash
-# Enable detailed logging
+# Enable detailed logging (if implemented in code)
+export LOG_LEVEL=DEBUG
+# Potentially slow down execution for CUDA debugging
 export CUDA_LAUNCH_BLOCKING=1
-python experiments/run_compression_experiment.py --verbose
+python experiments/run_compression_experiment.py ... --verbose # (Add verbose flag if exists)
 ```
 
 ## Citation
 
-If you use this work in your research, please cite:
+If you use this work in your research, please consider citing the original KVQuant paper and potentially this implementation if adapted.
 
 ```bibtex
-@article{realtime-prefill-compression-2024,
-  title={Real-time Prefill KV Cache Compression for Long-Context LLM Inference},
-  author={Your Name},
-  journal={arXiv preprint arXiv:XXXX.XXXXX},
+@article{kvquant-paper-placeholder,
+  title={KVQuant: Towards 10 Million Context Length LLM Inference with KV Cache Quantization},
+  author={KVQuant Authors},
+  # ... (Find actual citation details)
   year={2024}
 }
 ```
 
 ## Acknowledgements
 
-This work builds upon:
-- **KVQuant**: Offline calibration and non-uniform quantization techniques
-- **FastKV**: Token-Selective Propagation mechanism  
-- **Finch**: Prompt-guided compression strategies
-- **LongBench**: Long-context evaluation benchmark
+This work builds upon the principles introduced in:
+
+  - **KVQuant**: For Per-channel Key quantization, Pre-RoPE, Sink/Outlier handling ideas.
+  - Research on Attention Sinks in transformers (e.g., StreamingLLM).
 
 ## License
 
@@ -297,19 +261,20 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1.  Fork the repository
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`)
+3.  Commit your changes (`git commit -m 'Add amazing feature'`)
+4.  Push to the branch (`git push origin feature/amazing-feature`)
+5.  Open a Pull Request
 
 ## Support
 
 For questions and support:
-- Open an issue on GitHub
-- Check the troubleshooting section
-- Review the configuration documentation
 
-***
+  - Open an issue on GitHub.
+  - Check the troubleshooting section.
+  - Review the configuration documentation (`configs/base_config.py`).
 
-**Note**: This implementation is for research purposes. For production use, additional optimizations and testing may be required.
+-----
+
+**Note**: This implementation is for research purposes. Performance and stability may vary. Further optimization and testing are recommended for production use.
