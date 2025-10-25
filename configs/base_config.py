@@ -30,9 +30,9 @@ class CompressionConfig:
     later_layer_ratio: float = 0.4   # Last 30% layers
 
     # Quantization bits
-    high_precision_bits: int = 8
-    medium_precision_bits: int = 4
-    low_precision_bits: int = 2
+    high_precision_bits: int = 16
+    medium_precision_bits: int = 8
+    low_precision_bits: int = 4
 
     # Memory and performance
     memory_budget_ratio: float = 0.5  # Target memory reduction

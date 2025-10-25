@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "experiment_name": "compression_exp_20251020_225951",
+    "model_name": "models/llama2-7b",
+    "device": "cuda",
+    "timestamp": "2025-10-20T23:17:58.765359"
+  },
+  "hyperparameters": {
+    "alpha": 0.6,
+    "beta": 0.2,
+    "gamma": 0.2,
+    "theta_h": 0.6,
+    "theta_m": 0.2,
+    "early_ratio": 0.8,
+    "middle_ratio": 0.6,
+    "later_ratio": 0.4,
+    "max_length": 4096
+  },
+  "results": {
+    "baseline": {
+      "overall_quality_score": 0.06309627239121973,
+      "total_tasks": 3,
+      "task_breakdown": {
+        "narrativeqa": 0.026060795506253464,
+        "qasper": 0.08060181920775011,
+        "multifieldqa_en": 0.08262620245965563
+      }
+    },
+    "compressed": {
+      "overall_quality_score": 0.060235497403689615,
+      "avg_memory_savings": 0.5498491554901197,
+      "avg_compression_ratio": 0.45015084450988024,
+      "total_tasks": 3,
+      "task_breakdown": {
+        "narrativeqa": 0.07591093117408906,
+        "qasper": 0.062295561036979794,
+        "multifieldqa_en": 0.0425
+      }
+    }
+  }
+}

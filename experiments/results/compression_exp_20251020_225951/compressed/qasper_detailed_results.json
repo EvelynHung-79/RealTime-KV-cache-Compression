@@ -1,0 +1,292 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "Ourtherhood.\n\n\n\n\n\n\n\n\n\n\nThe first time.\n\n\n\n\n\n\n\nThe 2000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "Ground truth is not established in the paper",
+    "task_metrics": {
+      "f1": 0.14285714285714288,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.63873267173767,
+      "avg_processing_time_per_layer": 0.7387103959918022,
+      "avg_compression_ratio": 0.4615631103515625,
+      "avg_memory_savings": 0.5384368896484375,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.28437042236328125,
+        "medium_ratio": 0.7034149169921875,
+        "low_ratio": 0.01221466064453125
+      },
+      "generation_time": 27.73648953437805,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.6053589217213227,
+      "ttft": 23.63873267173767
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": "Ourtherhood.\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t",
+    "reference": "extension of the NetVLAD, adds Ghost clusters along with the NetVLAD clusters",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 20.97470235824585,
+      "avg_processing_time_per_layer": 0.6554594486951828,
+      "avg_compression_ratio": 0.4648729576294654,
+      "avg_memory_savings": 0.5351270423705345,
+      "cumulative_compression": 0.39988922736084187,
+      "overall_memory_savings": 0.6001107726391581,
+      "precision_distribution": {
+        "high_ratio": 0.31441255884796454,
+        "medium_ratio": 0.6728745499861534,
+        "low_ratio": 0.012712891165882027
+      },
+      "generation_time": 25.05619788169861,
+      "input_length": 3611,
+      "output_length": 100,
+      "total_tokens": 3711,
+      "tokens_per_second": 3.9910285060863675,
+      "ttft": 20.97470235824585
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": ", and the same time.\n\n\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t",
+    "reference": "the attention model, MDREA, also outperforms the best existing research results (WAP 0.690 to 0.688)",
+    "task_metrics": {
+      "f1": 0.10526315789473685,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.741395473480225,
+      "avg_processing_time_per_layer": 0.741918608546257,
+      "avg_compression_ratio": 0.4771728515625,
+      "avg_memory_savings": 0.5228271484375,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.2524871826171875,
+        "medium_ratio": 0.7371749877929688,
+        "low_ratio": 0.01033782958984375
+      },
+      "generation_time": 27.84045720100403,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.591895035272396,
+      "ttft": 23.741395473480225
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": "Ourtherhood, and the same time.\n\n\n\n\n\nThe first time to the 200000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "using tweets that one has replied or quoted to as contextual information",
+    "task_metrics": {
+      "f1": 0.08695652173913043,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 19.328035354614258,
+      "avg_processing_time_per_layer": 0.6040011048316956,
+      "avg_compression_ratio": 0.40274550224887573,
+      "avg_memory_savings": 0.5972544977511247,
+      "cumulative_compression": 0.4,
+      "overall_memory_savings": 0.6,
+      "precision_distribution": {
+        "high_ratio": 0.4889805097451274,
+        "medium_ratio": 0.5010494752623689,
+        "low_ratio": 0.009970014992503749
+      },
+      "generation_time": 23.406184911727905,
+      "input_length": 3335,
+      "output_length": 100,
+      "total_tokens": 3435,
+      "tokens_per_second": 4.272375031519724,
+      "ttft": 19.328035354614258
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": "Ourtherhood.\n\n\n\n\n\n\n\n\nThe first time to the 19999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "FoxNews, CNN, ESPN, New York Times, Time magazine, Huffington Post Weird News, The Guardian, Cartoon Network, Cooking Light, Home Cooking Adventure, Justin Bieber, Nickelodeon, Spongebob, Disney",
+    "task_metrics": {
+      "f1": 0.12121212121212123,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.687562942504883,
+      "avg_processing_time_per_layer": 0.7402363419532776,
+      "avg_compression_ratio": 0.4669036865234375,
+      "avg_memory_savings": 0.5330963134765625,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.24591064453125,
+        "medium_ratio": 0.742767333984375,
+        "low_ratio": 0.011322021484375
+      },
+      "generation_time": 27.78529953956604,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.59902544356597,
+      "ttft": 23.687562942504883
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": "Ourtherhood, and the 19999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "Yes",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.681931018829346,
+      "avg_processing_time_per_layer": 0.740060344338417,
+      "avg_compression_ratio": 0.4677581787109375,
+      "avg_memory_savings": 0.5322418212890625,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.27376556396484375,
+        "medium_ratio": 0.714080810546875,
+        "low_ratio": 0.01215362548828125
+      },
+      "generation_time": 27.780806064605713,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.599607576808419,
+      "ttft": 23.681931018829346
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "the same time.\n\n\nThe 1999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "reference": "Answer with content missing: (Evaluation Metrics section) Precision, Recall, F1-scores, Strict match, METEOR, ROUGE-2",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.798550844192505,
+      "avg_processing_time_per_layer": 0.7437047138810158,
+      "avg_compression_ratio": 0.4840850830078125,
+      "avg_memory_savings": 0.5159149169921875,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.2707977294921875,
+        "medium_ratio": 0.7143478393554688,
+        "low_ratio": 0.01485443115234375
+      },
+      "generation_time": 27.89748454093933,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.5845525733064147,
+      "ttft": 23.798550844192505
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "Ourtherhood.\n\nThe 2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.78337526321411,
+      "avg_processing_time_per_layer": 0.743230476975441,
+      "avg_compression_ratio": 0.4707489013671875,
+      "avg_memory_savings": 0.5292510986328125,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.2536773681640625,
+        "medium_ratio": 0.7405548095703125,
+        "low_ratio": 0.005767822265625
+      },
+      "generation_time": 27.881221532821655,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.586643428885654,
+      "ttft": 23.78337526321411
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "Ourtherhood.\n\n\n\n\nThe 2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "GM$\\_$KL achieves better correlation than existing approaches for various metrics on SCWS dataset.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 22.102638721466064,
+      "avg_processing_time_per_layer": 0.6907074600458145,
+      "avg_compression_ratio": 0.4021486928104576,
+      "avg_memory_savings": 0.5978513071895427,
+      "cumulative_compression": 0.4,
+      "overall_memory_savings": 0.6,
+      "precision_distribution": {
+        "high_ratio": 0.48533496732026143,
+        "medium_ratio": 0.5060457516339869,
+        "low_ratio": 0.008619281045751635
+      },
+      "generation_time": 26.19181203842163,
+      "input_length": 3825,
+      "output_length": 100,
+      "total_tokens": 3925,
+      "tokens_per_second": 3.8179870813560632,
+      "ttft": 22.102638721466064
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": "Ourtherhood.\nThe 19999999999999500000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "reference": "simply averaging the predictions from the constituent single models",
+    "task_metrics": {
+      "f1": 0.16666666666666666,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "total_layers_processed": 32,
+      "total_processing_time": 23.62026071548462,
+      "avg_processing_time_per_layer": 0.7381331473588943,
+      "avg_compression_ratio": 0.45893096923828125,
+      "avg_memory_savings": 0.5410690307617188,
+      "cumulative_compression": 0.39990234375,
+      "overall_memory_savings": 0.60009765625,
+      "precision_distribution": {
+        "high_ratio": 0.27500152587890625,
+        "medium_ratio": 0.7147216796875,
+        "low_ratio": 0.01027679443359375
+      },
+      "generation_time": 27.71920347213745,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 3.607607271273763,
+      "ttft": 23.62026071548462
+    }
+  }
+]

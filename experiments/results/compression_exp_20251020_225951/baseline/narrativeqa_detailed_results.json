@@ -1,0 +1,172 @@
+[
+  {
+    "sample_id": 0,
+    "prediction": "\nwith a certain humour, that the Mulvilles had been struck with the\nmanner in which Mr. Saltram talked.  I had no doubt they had been\nstruck with everything, but I was sure they had been struck with the\nmanner.  They had been struck with the man.  They had been struck with\nthe man.  They had been struck with the man.  They had been struck with\nthe man.  They had been struck",
+    "reference": "He is a guest in the home of the Mulvilles.",
+    "task_metrics": {
+      "f1": 0.09876543209876544,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.254279136657715,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 23.50574487187103,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 1,
+    "prediction": "gyman, who had a small benefice, and lived in\nthe neighbourhood. He was a man of learning, and had a great\ntendency to virtue; but he was not a man of business, and had no\nmeans of supporting his family. He had a brother, who was a merchant, and\nhad a large fortune, and was a man of the most generous disposition; but\nhe was a man of business, and had no time to spare for his sister",
+    "reference": "Because she is in unrequited love with someone else",
+    "task_metrics": {
+      "f1": 0.022988505747126436,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.049337148666382,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.69539984659816,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 2,
+    "prediction": "im\n Of the red light of the setting sun.                           _280\n\n 30.\n There, in the midst of the red light, she stood,\n And in her hand she held a magic wand,\n Which, when she waved, the red light would change to green,\n And the green to red, and the red to green,                    _285\n And the green to red, and the red to green,\n And the red",
+    "reference": "The Atlas Mountains",
+    "task_metrics": {
+      "f1": 0.029411764705882356,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.052443742752075,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.676468409673344,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 3,
+    "prediction": "s.  For I am not aware that I have\never done any wrong to any man, and I am sure that I never will.  And\ntherefore I cannot believe that I am to be punished by the laws, or by\nthe people, or by the gods, for any wrong which I have done; and if I\nhave done any wrong, I am ready to suffer injustice, but never to be\n\n\n\n\n\n\n\n\n\n\n",
+    "reference": "To smuggle Socrates out of prison and into a life of exile.",
+    "task_metrics": {
+      "f1": 0.048780487804878044,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.059155225753784,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.63566787629562,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 4,
+    "prediction": "his hole.\"\n\nThe Baroness sat listening, listening, listening, and the old nurse\nsat watching her.\n\nThe Baroness rose and went to the window and looked out into the night.\n\n\"Yes, good,\" said old Ursela, \"the red fox has come back to his hole.\"\n\nThe Baroness sat listening, listening, listening, listening, listening, and the old\nUrsela sat watching her young mistress.\n\n",
+    "reference": "Otto was so young.",
+    "task_metrics": {
+      "f1": 0.03125,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.060525178909302,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.627356214759644,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 5,
+    "prediction": "ess that I am very much interested in this\nmatter.\"\n\n\"I am glad to hear it, Mr. Holmes,\" said the clergyman.  \"I have\nbeen very much distressed by the whole affair, and I have been\nconsulting with the vicarage, and we have decided that it is our duty to\ninvestigate the matter.  I am sure that you will be able to throw some\nlight upon the darkness which",
+    "reference": "Six hours.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.069426536560059,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.57348697699587,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 6,
+    "prediction": "\t\tnot sure. \n\n<b>\t\t\t\tJOF \n</b>\t\t\t(angrily)\n\t\tYou're always making fun of me. \n\n<b>\t\t\t\t\tMIA \n</b>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t",
+    "reference": "Lisa, the blacksmith's wife.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.0713067054748535,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.56213870242836,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 7,
+    "prediction": "saying that the world is going to end in a few\n\t\t\tdays and you're not even going to be able to\n\t\t\tpromote the book?\n\n<b>\t\t\t\t\t\t\tMILTON\n</b>\t\t\t\tI'm sorry, but that's the way it is.\n\n<b>\t\t\t\t\t\t\tVENKMAN\n</b>\t\t\t\tWell,",
+    "reference": "Dr. Janosz Poha",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.074392795562744,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.543534464547932,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 8,
+    "prediction": "\nwith a certain reservation, that the Mulvilles had been too much\ninfluenced by the fact that Mr. Saltram was a writer.  They had\nthought him a great man, and they had thought him a great talker.  I\ncouldn’t help feeling that they had been right, and I was glad to have\ntheir example.  I had been a little afraid of the Mulvilles, but I was\nnow a little",
+    "reference": "She is an American.",
+    "task_metrics": {
+      "f1": 0.0,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.081047534942627,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.503512675062687,
+      "ttft": 0
+    }
+  },
+  {
+    "sample_id": 9,
+    "prediction": "im\n With the blood of the sun's setting--and she fell                  _280_\n Into the well, and there she lay, and there\n She saw the Gods, and the Goddesses fair,\n And the great spirits of the air, and the spirits of the sea,\n And the spirits of the earth, and the spirits of the tree,\n And the spirits of the fire, and the spirits of the dew,                 _28",
+    "reference": "The scribe.",
+    "task_metrics": {
+      "f1": 0.029411764705882356,
+      "exact_match": 0.0
+    },
+    "compression_stats": {
+      "generation_time": 4.0887291431427,
+      "input_length": 4096,
+      "output_length": 100,
+      "total_tokens": 4196,
+      "tokens_per_second": 24.457477250042903,
+      "ttft": 0
+    }
+  }
+]
