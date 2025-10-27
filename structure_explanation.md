@@ -47,8 +47,8 @@ real-time-prefill-kv-cache-compression/
 │   ├── test\_compression.py \# 需重寫，測試串流、量化整合
 │   └── test\_quantization.py \# 需重寫，測試 streaming\_quantization.py
 └── scripts/
-├── download\_model.py \# (原 download\_models.sh 已改為 .py)
-└── setup\_environment.sh
+│   └── download\_model.py \# (原 download\_models.sh 已改為 .py)
+│   └── setup\_environment.sh
 
 ```
 
