@@ -153,7 +153,8 @@ class CompressedLlamaAttention(nn.Module):
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
 
         # RoPE
-        self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=config.max_position_embeddings)
+        # self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=config.max_position_embeddings)
+        self.rotary_emb = LlamaRotaryEmbedding(config)
 
         # Statistics managers for Key and Value
         num_channels = self.num_key_value_heads * self.head_dim
@@ -183,9 +184,11 @@ class CompressedLlamaAttention(nn.Module):
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Tuple[torch.Tensor]] = None,
+        past_key_values: Optional[Tuple[torch.Tensor]] = None,
         output_attentions: bool = False,
         use_cache: bool = False,
+        cache_position: Optional[torch.LongTensor] = None,
+        position_embeddings: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
         """Forward pass with streaming quantization."""
 
@@ -202,10 +205,10 @@ class CompressedLlamaAttention(nn.Module):
         value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
 
         # Get RoPE embeddings
-        kv_seq_len = key_states.shape[-2]
-        if past_key_value is not None:
-            kv_seq_len += past_key_value[0].shape[-2]
-        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
+        kv_seq_len = self.current_position + q_len
+        device = value_states.device
+        pos_ids_for_rotary = torch.arange(kv_seq_len, device=device).unsqueeze(0)
+        cos, sin = self.rotary_emb(value_states, position_ids=pos_ids_for_rotary)
 
         # Determine if current chunk contains sink tokens
         is_sink_chunk = self.current_position < self.compression_config.attention_sink_size
@@ -307,7 +310,13 @@ class CompressedLlamaAttention(nn.Module):
         # Update position
         self.current_position += q_len
 
-        return attn_output, attn_weights if output_attentions else None, None
+        attn_weights_output = attn_weights if output_attentions else None
+        present_key_value = (None, None) if use_cache else None
+
+        if output_attentions:
+            return attn_output, attn_weights_output, present_key_value
+        else:
+            return attn_output, present_key_value # <--- Return only TWO values here
 
     def reset_cache(self):
         """Reset KV cache and position tracking."""
