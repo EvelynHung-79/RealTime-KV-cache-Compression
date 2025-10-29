@@ -12,11 +12,7 @@ real-time-prefill-kv-cache-compression/
 ├── setup.py \# (如果有的話)
 ├── configs/
 │   ├── **init**.py
-│   ├── base\_config.py \# 更新：包含串流、量化位元、Sink/Outlier 參數
-│   └── model\_configs/ \# (可選，存放特定模型基礎參數)
-│       ├── **init**.py
-│       ├── llama2\_7b.py
-│       └── llama2\_13b.py
+│   └── base\_config.py \# 更新：包含串流、量化位元、Sink/Outlier 參數
 ├── src/
 │   ├── **init**.py
 │   ├── models/

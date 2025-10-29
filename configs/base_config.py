@@ -61,8 +61,8 @@ class CompressionConfig:
     # Quantization bit widths
     key_bits_normal: int = 4
     value_bits_normal: int = 4
-    key_bits_sink_outlier: int = 8
-    value_bits_sink_outlier: int = 8
+    key_bits_sink_outlier: int = 16
+    value_bits_sink_outlier: int = 16
 
     # Outlier detection parameters
     outlier_threshold_relative: float = 3.0

@@ -150,11 +150,12 @@ real-time-prefill-kv-cache-compression/
 
 ```bash
 # 運行所有測試
-pytest tests/
+PYTHONPATH=$(pwd) pytest tests/
 
 # 運行特定測試
-pytest tests/test_quantization.py -v
-pytest tests/test_compression.py -v
+PYTHONPATH=$(pwd) pytest tests/test_quantization.py -v
+PYTHONPATH=$(pwd) pytest tests/test_compression.py -v
+PYTHONPATH=$(pwd) pytest tests/test_functionality.py -v -s
 ```
 
 ## 性能基準
