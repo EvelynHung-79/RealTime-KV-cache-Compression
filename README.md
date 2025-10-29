@@ -91,7 +91,7 @@ print(f"Outlier ratio: {stats['outlier_ratio']:.2%}")
 ### 運行評估實驗
 
 ```bash
-# LongBench 評估
+# LongBench 完整評估
 python experiments/run_compression_experiment.py \
     --model_name meta-llama/Llama-2-7b-hf \
     --dataset longbench \
@@ -130,6 +130,25 @@ python experiments/ablation_study.py \
 ### Value 量化策略
 
 - `value_quant_groups`: 分組數量（0 表示 Per-channel）
+
+### LongBench Tasks
+Multi-doc QA:
+- HotpotQA, 2WikiMultihopQA, MuSiQue
+
+Single-doc QA:
+- MultiFieldQA-en, NarrativeQA, Qasper
+
+Summarization:
+- GovReport, QMSum, MultiNews
+
+Few shot:
+- TriviaQA, SAMSum, TREC
+
+Synthetic:
+- PassageRetrieval-en, PassageCount
+
+Code:
+- RepoBench-P, LCC
 
 ## 專案結構
 

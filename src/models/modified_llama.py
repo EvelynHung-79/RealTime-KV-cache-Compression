@@ -423,42 +423,43 @@ _summary_
         """
         覆蓋 from_pretrained 方法，以確保 compression_config 被正確傳遞
         """
-        
-        # 首先，使用父類別的方法載入模型
-        # 注意：此時載入的是 *未經修改* 的 LlamaForCausalLM
-        # 我們傳遞 device_map="auto" 和其他 kwargs
-        model = super().from_pretrained(
+
+        # 1. 載入 *原始的* LlamaForCausalLM 模型
+        #    使用父類的 from_pretrained 方法，避免提前呼叫我們需要 compression_config 的 __init__
+        print(f"Loading base model: {pretrained_model_name_or_path}") # 添加日誌
+        base_model = LlamaForCausalLM.from_pretrained(
             pretrained_model_name_or_path,
             *model_args,
             **kwargs,
         )
+        print("Base model loaded.")
 
-        # 接下來，我們需要手動將其轉換為我們的 CompressedLlamaForCausalLM
-        # 這是一個常見的技巧：載入權重，然後替換模組
+        # 2. 建立一個新的 CompressedLlamaForCausalLM 實例
+        #    這次我們手動傳入 base_model 的 config 和 compression_config
+        print("Initializing CompressedLlamaForCausalLM...")
+        compressed_model = cls(base_model.config, compression_config)
+        print("CompressedLlamaForCausalLM initialized.")
 
-        # 1. 建立一個新的 CompressedLlamaForCausalLM 實例
-        #    它會使用載入的 config，並初始化我們的壓縮層
-        compressed_model = cls(model.config, compression_config)
 
-        # 2. 將載入的權重複製到新模型中
-        compressed_model.load_state_dict(model.state_dict())
-        
-        # 3. 確保 device_map 被正確處理
-        #    如果使用了 device_map，我們需要重新分配模型
-        if "device_map" in kwargs:
-             # from_pretrained 已經處理了 device_map，
-             # 我們的 compressed_model 繼承了 LlamaForCausalLM，
-             # 並且在 __init__ 中呼叫了 super().__init__，
-             # 但替換層的操作可能會破壞 device_map。
-             # 最安全的方式是再次呼叫 device_map 相關的函數，
-             # 或者在 __init__ 中更巧妙地處理
-             
-             # 簡單起見，我們假設 load_state_dict 之後，
-             # 權重已經在正確的設備上。
+        # 3. 將載入的權重複製到新模型中
+        print("Loading state dict...")
+        compressed_model.load_state_dict(base_model.state_dict())
+        print("State dict loaded.")
+
+
+        # 4. 處理 device_map (如果有的話)
+        #    load_state_dict 後可能需要重新應用 device_map
+        if "device_map" in kwargs and hasattr(compressed_model, 'hf_device_map'):
+             # 簡單處理：假設 load_state_dict 後權重已在正確設備
              # 如果遇到 device 問題，可能需要使用 accelerate.dispatch_model
+             print("Handling device map...")
+             # from accelerate import dispatch_model
+             # compressed_model = dispatch_model(compressed_model, device_map=kwargs["device_map"])
              pass
 
+
         # 刪除臨時載入的原始模型
-        del model
-        
+        del base_model
+        print("Base model deleted.")
+
         return compressed_model
